@@ -12,6 +12,11 @@ const routes = [
     component: () => import('../views/LoginSwitch.vue')
   },
   {
+    path: '/editor/:hashcode',
+    name: 'editor',
+    component: () => import('../views/Editor.vue'),
+  },
+  {
     path: '/home',
     redirect: '/home/recent',
     name: 'home',

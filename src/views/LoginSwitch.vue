@@ -13,11 +13,30 @@
             <img class="form__icon" src="@/assets/images/QQ.png" alt="QQ登录">
           </div>
           <span class="text">或使用邮箱进行注册</span>
-          <input class="form__input" type="text" placeholder="请输入用户名"/>
-          <input class="form__input" type="text" placeholder="请输入邮箱"/>
-          <input class="form__input" type="password" placeholder="请输入密码"/>
-          <input class="form__input" type="password" placeholder="请输入密码"/>
-          <div class="form__button">立即注册</div>
+          <!-- <input class="form__input" type="text" placeholder="请输入用户名" v-model="registerForm.name" required="required"/>
+          <input class="form__input" type="text" placeholder="请输入邮箱" v-model="registerForm.email" required="required"/>
+          <input class="form__input" type="password" placeholder="请输入密码" v-model="registerForm.password" required="required"/> -->
+          <el-form
+            :label-position=right
+            label-width="auto"
+            :model="registerForm"
+            :rules="registerRules"
+            style="max-width: 600px"
+            ref="registerForm"
+          >
+            <el-form-item label="Name" prop="name">
+              <el-input v-model="registerForm.name" />
+            </el-form-item>
+            <el-form-item label="Email" prop="email">
+              <el-input v-model="registerForm.email" />
+            </el-form-item>
+            <el-form-item label="Password" prop="password">
+              <el-input v-model="registerForm.password" />
+            </el-form-item>
+            <el-form-item>
+              <div class="form__button" @click="register">立即注册</div>
+            </el-form-item>
+          </el-form>
         </form>
       </div>
       <div :class="['container', 'container-login', { 'is-txl is-z200': isLogin }]">
@@ -28,10 +47,27 @@
             <img class="form__icon" src="@/assets/images/alipay.png" alt="支付宝登录">
             <img class="form__icon" src="@/assets/images/QQ.png" alt="QQ登录">
           </div>
-          <span class="text">或使用用户名登录</span>
-          <input class="form__input" type="text" placeholder="用户名/邮箱/手机号"/>
-          <input class="form__input" type="password" placeholder="请输入密码"/>
-          <div class="form__button">立即登录</div>
+          <span class="text">或使用邮箱登录</span>
+          <!-- <input class="form__input" type="text" placeholder="请输入邮箱" v-model="loginForm.email"/>
+          <input class="form__input" type="password" placeholder="请输入密码" v-model="loginForm.email"/> -->
+          <el-form
+            :label-position=right
+            label-width="auto"
+            :model="loginForm"
+            :rules="loginrRules"
+            style="max-width: 600px"
+            ref="loginForm"
+          >
+            <el-form-item prop="email">
+              <el-input v-model="loginForm.email" placeholder="请输入邮箱"/>
+            </el-form-item>
+            <el-form-item prop="password">
+              <el-input v-model="loginForm.password" placeholder="请输入密码"/>
+            </el-form-item>
+            <el-form-item>
+              <div class="form__button" @click="login">立即登录</div>
+            </el-form-item>
+          </el-form>
         </form>
       </div>
       <div :class="['switch', { 'login': isLogin }]">
@@ -56,6 +92,8 @@
 </template>
 
 <script>
+import {Login, Register} from '../api/user.js'
+import { ElMessage } from 'element-plus'
 export default {
   name: 'Login',
   data() {
@@ -70,12 +108,78 @@ export default {
         email: '',
         password: '',
       },
+      registerRules: {
+        name:[
+          {required: true, message: "必填"}
+        ],
+        email:[
+          {required: true, message: "必填"}
+        ],
+        password:[
+          {required: true, message: "必填"},
+          { min: 6, max: 18, message: '长度在 6 到 18 个字符', trigger: 'blur' }
+        ]
+      },
+      loginrRules: {
+        email:[
+          {required: true, message: "必填"}
+        ],
+        password:[
+          {required: true, message: "必填"},
+        ]
+      }
     }
   },
   methods: {
     login() {
+      this.$refs.loginForm.validate((valid) =>{
+        if(valid) {
+          console.log(1)
+          var promise = Login(this.loginForm.email, this.loginForm.password)
+          promise.then((result =>{
+            if(result.code==0){
+              ElMessage({
+                message: result.error,
+                type: 'warning',
+              })
+            }else{
+              ElMessage({
+                message: result.message,
+                type: 'success',
+              })
+              window.sessionStorage.setItem('token', result.token)
+              this.$router.push({ path: "/home" })
+            }
+          }))
+        }
+      })
     },
     register() {
+      this.$refs.registerForm.validate((valid) =>{
+        if(valid){
+          var promise = Register(this.registerForm.name, this.registerForm.password, this.registerForm.email)
+          promise.then((result =>{
+            console.log(result)
+            if(result.code==0){
+              ElMessage({
+                message: result.error,
+                type: 'warning',
+              })
+            }else{
+              ElMessage({
+                message: result.message,
+                type: 'success',
+              })
+              this.isLogin = !this.isLogin
+            }
+          }))
+        }else{
+          ElMessage({
+                message: "请完善表单相关信息",
+                type: 'warning',
+              })
+        }
+      })
     },
   },
 }
@@ -154,7 +258,7 @@ export default {
         margin-bottom: 12px;
       }
 
-      .form__input {
+      .el-input {
         width: 350px;
         height: 40px;
         margin: 4px 0;
@@ -167,7 +271,10 @@ export default {
         background-color: #ecf0f3;
         transition: 0.25s ease;
         border-radius: 8px;
-        box-shadow: inset 2px 2px 4px #d1d9e6, inset -2px -2px 4px #f9f9f9;
+        // box-shadow: inset 2px 2px 4px #d1d9e6, inset -2px -2px 4px #f9f9f9;
+        :deep(.el-input__wrapper) {
+          background-color: #ecf0f3 !important;
+        }
 
         &::placeholder {
           color: #a0a5a8;

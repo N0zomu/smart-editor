@@ -12,6 +12,11 @@ const routes = [
     component: () => import('../views/LoginSwitch.vue')
   },
   {
+    path: '/user',
+    name: 'userHome',
+    component: () => import('../components/user/UserHome.vue')
+  },
+  {
     path: '/home',
     redirect: '/home/recent',
     name: 'home',

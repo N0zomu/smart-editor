@@ -1377,7 +1377,7 @@
 
 "@tiptap/pm@^2.4.0":
   version "2.4.0"
-  resolved "https://registry.npmjs.org/@tiptap/pm/-/pm-2.4.0.tgz"
+  resolved "https://registry.npmmirror.com/@tiptap/pm/-/pm-2.4.0.tgz#f6fe81d24569da584658d2e8a3a378aea3619fb3"
   integrity sha512-B1HMEqGS4MzIVXnpgRZDLm30mxDWj51LkBT/if1XD+hj5gm8B9Q0c84bhvODX6KIs+c6z+zsY9VkVu8w9Yfgxg==
   dependencies:
     prosemirror-changeset "^2.2.1"
@@ -1401,7 +1401,7 @@
 
 "@tiptap/starter-kit@^2.4.0":
   version "2.4.0"
-  resolved "https://registry.npmjs.org/@tiptap/starter-kit/-/starter-kit-2.4.0.tgz"
+  resolved "https://registry.npmmirror.com/@tiptap/starter-kit/-/starter-kit-2.4.0.tgz#ad2c2d900af41e55eaaccafa92fd6b2acaebd97e"
   integrity sha512-DYYzMZdTEnRn9oZhKOeRCcB+TjhNz5icLlvJKoHoOGL9kCbuUyEf8WRR2OSPckI0+KUIPJL3oHRqO4SqSdTjfg==
   dependencies:
     "@tiptap/core" "^2.4.0"
@@ -1426,7 +1426,7 @@
 
 "@tiptap/vue-3@^2.4.0":
   version "2.4.0"
-  resolved "https://registry.npmjs.org/@tiptap/vue-3/-/vue-3-2.4.0.tgz"
+  resolved "https://registry.npmmirror.com/@tiptap/vue-3/-/vue-3-2.4.0.tgz#906dc45167498e88b56b8390aabf658e8f1c2fc4"
   integrity sha512-NCw1Y4ScIrMCKC9YlepUHSAB8jq/PQ2f+AbZKh5bY2t/kMSJYLCJVHq9NFzG4TQtktgMGWCcEQVcDJ7YNpsfxw==
   dependencies:
     "@tiptap/extension-bubble-menu" "^2.4.0"
@@ -1946,7 +1946,7 @@
   optionalDependencies:
     prettier "^1.18.2 || ^2.0.0"
 
-"@vue/devtools-api@^6.5.1":
+"@vue/devtools-api@^6.5.0", "@vue/devtools-api@^6.5.1":
   version "6.6.1"
   resolved "https://registry.npmmirror.com/@vue/devtools-api/-/devtools-api-6.6.1.tgz"
   integrity sha512-LgPscpE3Vs0x96PzSSB4IGVSZXZBZHpfxs+ZA1d+VEPwHdOXowy/Y2CsvCAIFrf+ssVU1pD1jidj505EpUnfbA==
@@ -4815,6 +4815,11 @@ module-alias@^2.2.2:
   resolved "https://registry.npmmirror.com/module-alias/-/module-alias-2.2.3.tgz"
   integrity sha512-23g5BFj4zdQL/b6tor7Ji+QY4pEfNH784BMslY9Qb0UnJWRAt+lQGLYmRaM0KDBwIG23ffEBELhZDP2rhi9f/Q==
 
+moment@^2.30.1:
+  version "2.30.1"
+  resolved "https://registry.npmmirror.com/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
+  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
+
 mrmime@^2.0.0:
   version "2.0.0"
   resolved "https://registry.npmmirror.com/mrmime/-/mrmime-2.0.0.tgz"
@@ -5221,6 +5226,19 @@ pify@^4.0.1:
   version "4.0.1"
   resolved "https://registry.npmmirror.com/pify/-/pify-4.0.1.tgz"
   integrity sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==
+
+pinia-plugin-persistedstate@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.npmmirror.com/pinia-plugin-persistedstate/-/pinia-plugin-persistedstate-3.2.1.tgz#66780602aecd6c7b152dd7e3ddc249a1f7a13fe5"
+  integrity sha512-MK++8LRUsGF7r45PjBFES82ISnPzyO6IZx3CH5vyPseFLZCk1g2kgx6l/nW8pEBKxxd4do0P6bJw+mUSZIEZUQ==
+
+pinia@^2.1.7:
+  version "2.1.7"
+  resolved "https://registry.npmmirror.com/pinia/-/pinia-2.1.7.tgz#4cf5420d9324ca00b7b4984d3fbf693222115bbc"
+  integrity sha512-+C2AHFtcFqjPih0zpYuvof37SFxMQ7OEG2zV9jRI12i9BOy3YQVAHwdKtyyc8pDcDyIc33WCIsZaCFWU7WWxGQ==
+  dependencies:
+    "@vue/devtools-api" "^6.5.0"
+    vue-demi ">=0.14.5"
 
 pkg-dir@^4.1.0:
   version "4.2.0"
@@ -6667,7 +6685,7 @@ vary@~1.1.2:
   resolved "https://registry.npmmirror.com/vary/-/vary-1.1.2.tgz"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-vue-demi@*:
+vue-demi@*, vue-demi@>=0.14.5:
   version "0.14.7"
   resolved "https://registry.npmmirror.com/vue-demi/-/vue-demi-0.14.7.tgz"
   integrity sha512-EOG8KXDQNwkJILkx/gPcoL/7vH+hORoBaKgGe+6W7VFMvCYJfmF2dGbvgDroVnI8LU7/kTu8mbjRZGBU1z9NTA==

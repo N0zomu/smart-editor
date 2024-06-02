@@ -42,6 +42,11 @@ const routes = [
         path: '/home/trash', 
         component: () => import('../components/home/Trash.vue')
       },
+      {
+        path: '/home/space/:teamId', 
+        name: 'space',
+        component: () => import('../components/home/GroupSpace.vue')
+      },
     ]
   }
 ]

@@ -62,7 +62,7 @@
               <el-input v-model="loginForm.email" placeholder="请输入邮箱"/>
             </el-form-item>
             <el-form-item prop="password">
-              <el-input v-model="loginForm.password" placeholder="请输入密码"/>
+              <el-input v-model="loginForm.password" placeholder="请输入密码" show-password/>
             </el-form-item>
             <el-form-item>
               <div class="form__button" @click="login">立即登录</div>
@@ -94,6 +94,8 @@
 <script>
 import {Login, Register} from '../api/user.js'
 import { ElMessage } from 'element-plus'
+import { userStore } from '../stores/user.js'
+const store = userStore()
 export default {
   name: 'Login',
   data() {
@@ -137,6 +139,7 @@ export default {
           console.log(1)
           var promise = Login(this.loginForm.email, this.loginForm.password)
           promise.then((result =>{
+            console.log(2)
             if(result.code==0){
               ElMessage({
                 message: result.error,
@@ -147,7 +150,8 @@ export default {
                 message: result.message,
                 type: 'success',
               })
-              window.sessionStorage.setItem('token', result.token)
+              // window.sessionStorage.setItem('token', result.token)
+              store.login(result.id, result.nickname, result.email, result.icon, result.is_VIP, result.token)
               this.$router.push({ path: "/home" })
             }
           }))

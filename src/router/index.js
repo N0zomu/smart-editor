@@ -7,6 +7,11 @@ const routes = [
     component: () => import('../components/HelloWorld.vue')
   },
   {
+    path: '/test',
+    name: 'test',
+    component: () => import('../components/test.vue')
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import('../views/LoginSwitch.vue')

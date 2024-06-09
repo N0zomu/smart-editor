@@ -1,0 +1,4 @@
+let tiptapcloudJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTc5MjczMjMsIm5iZiI6MTcxNzkyNzMyMywiZXhwIjoxNzE4MDEzNzIzLCJpc3MiOiJodHRwczovL2Nsb3VkLnRpcHRhcC5kZXYiLCJhdWQiOiI4OWo0ODc5NyJ9.LXAdXW-Ep03eI5p_63gg-EEgMIqDFrsK5xHEACBMztc"
+export {
+    tiptapcloudJWT
+}

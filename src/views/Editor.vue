@@ -1,7 +1,35 @@
 <template>
   <el-container class="home-container" v-if="true">
     <el-header>
-      <el-icon><document /></el-icon>
+      <el-row style="height:100%">
+        <el-col :span="3"><h1>LOGO</h1></el-col>
+        <el-col :span="19">
+          <div class="home-header-search">
+            <el-input
+                v-model="input3"
+                style="max-width: 600px"
+                placeholder="Please input"
+                class="input-with-select"
+            >
+              <template #prepend>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+          </div>
+        </el-col>
+        <el-col :span="1">
+          <div class="home-header-notification">
+            <el-badge :value="12	" class="item">
+              <el-button icon="Bell" circle />
+            </el-badge>
+          </div>
+        </el-col>
+        <el-col :span="1"><div class="home-header-avatar">
+          <div class="home-header-avatar">
+            <el-avatar> user </el-avatar>
+          </div>
+        </div></el-col>
+      </el-row>
     </el-header>
     <el-container class="lower-container">
       <el-aside>
@@ -48,15 +76,17 @@
         </div>
       </el-aside>
       <el-main>
-        <EditorCom></EditorCom>
+        <editor-com></editor-com>
       </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script>
+import {
+  Bell
+} from '@element-plus/icons-vue'
 import EditorCom from "@/components/editor/EditorCom.vue";
-
 export default {
   components: {EditorCom},
   data() {
@@ -94,7 +124,20 @@ export default {
   height: 100%;
 }
 .el-header {
-  background-color: #d9ecff;
+  background-color: #ecf5ff;
+  border:1px solid #DCDFE6;
+  .home-header-search{
+    width: 30%;
+    height: 80%;
+    margin-top: 12px;
+    margin-left: 3%;
+  }
+  .home-header-avatar{
+    margin-top: 8px;
+  }
+  .home-header-notification{
+    margin-top: 13px;
+  }
 }
 .el-aside {
   background-color: #ecf5ff;
@@ -110,6 +153,7 @@ export default {
     height: 73%;
 
   }
+  border:1px solid #DCDFE6;
 }
 .el-main {
   background-color: #FAFCFF;

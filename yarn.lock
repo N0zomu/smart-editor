@@ -1347,7 +1347,7 @@
 
 "@tiptap/extension-heading@^2.4.0":
   version "2.4.0"
-  resolved "https://registry.npmjs.org/@tiptap/extension-heading/-/extension-heading-2.4.0.tgz"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-heading/-/extension-heading-2.4.0.tgz#16302ce691714244c3d3fa92d2db86a5c895a025"
   integrity sha512-fYkyP/VMo7YHO76YVrUjd95Qeo0cubWn/Spavmwm1gLTHH/q7xMtbod2Z/F0wd6QHnc7+HGhO7XAjjKWDjldaw==
 
 "@tiptap/extension-history@^2.4.0":

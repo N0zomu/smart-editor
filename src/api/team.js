@@ -22,3 +22,14 @@ export function searchTeam(key){
   data.key=key;
   return post("/team/search",data);
 }
+
+export function teamInfo(team_id){
+  let param={};
+  return get(`/team/info/${team_id}`,param);
+}
+
+export function teamMembers(team_id){
+  let data={};
+  data.team_id=team_id;
+  return post("/team/allMember",data);
+}

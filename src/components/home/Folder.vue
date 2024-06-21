@@ -3,7 +3,14 @@
     <el-header class="desktop-header" style="white-space: nowrap;">
       <el-row :gutter="20">
         <el-col :span="18" style="text-align: left">
-          <el-text size="large" style="font-size: 20px; font-weight:bold; White-space:nowrap">我的桌面</el-text>
+          <el-breadcrumb separator="/" v-loading.fullscreen.lock="docLoading">
+            <el-breadcrumb-item :to="{ path: '/home/desktop' }" v-if="team_id==0">我的桌面</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: `/home/space/${team_id}` }" v-else>{{team_name}}</el-breadcrumb-item>
+            <el-breadcrumb-item v-for="(item) in pathTable" :key="item.id">
+              <a :href="`/home/folder/${item.id}`">{{item.name}}</a>
+            </el-breadcrumb-item>
+            <el-breadcrumb-item>{{folder_name}}</el-breadcrumb-item>
+          </el-breadcrumb>
         </el-col>
         <el-col :span="6">
           <el-row>
@@ -53,7 +60,7 @@
     </el-header>
     <el-divider style="margin: 1px;"/>
     <el-main class="desktop-main">
-      <el-table :data="docTable" style="width: 100%" v-loading="docLoading" @selection-change="handleSelectionChange">
+      <el-table :data="docTable" style="width: 100%" v-loading.fullscreen.lock="docLoading" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column label="文件名" width="180">
           <template #default="scope">
@@ -121,7 +128,7 @@
     </template>
   </el-dialog>
   <el-dialog :model-value="moveDialogVisible" title="移动" width="500">
-    <doc-tree @message-to-parent="receiveMessageFromChild"></doc-tree>
+    <doc-tree @message-to-parent="receiveMessageFromChild" :is_team=is_in_team :team_id=team_id :team_name=team_name></doc-tree>
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="moveDialogVisible = false">Cancel</el-button>
@@ -135,19 +142,45 @@
 
 <script setup>
 import {ref, reactive, onMounted, toRaw} from 'vue'
-import {rootDoc, deleteDoc, collectDoc, cancelCollect, allCollect, createRootDoc, createRootFolder, moveDoc} from "../../api/document.js"
+import {folderDoc, deleteDoc, collectDoc, cancelCollect, allCollect, createFolderDoc, createFolderFolder,
+  getPath, moveDoc} from "../../api/document.js"
+import {teamInfo} from '../../api/team'
+
 import moment from 'moment'
 import { ElMessage, ElNotification } from 'element-plus';
+import {useRoute} from 'vue-router';
 import DocTree from '../DocTree';
-
+const route = useRoute()
+let folder_id = ref(0)
+let folder_name = ref('')
 let moveDialogVisible = ref(false)
+let team_id = ref(0)
+let is_in_team = ref(false)
+let team_name = ref('')
 
 let dst_doc = ref(0)
 function receiveMessageFromChild(message){
   dst_doc.value = message
 }
+
 onMounted(() => {
-  getRootDoc()
+  folder_id.value = route.params.docId
+  var promise = folderDoc(folder_id.value)
+  promise.then((res => {
+    docTable = res.res
+    team_id.value = res.team_id
+    is_in_team.value = res.is_team
+    docTable.sort(function(a, b){
+      if(a.is_folder<=b.is_folder) return 1
+      else return -1
+    })
+    docCount.value = res.count
+    var promise = teamInfo(team_id.value)
+    promise.then((res =>{
+      team_name.value = res.team_name
+    }))
+    getSelfPath()
+  }))
 });
 
 let docDialogVisible = ref(false)
@@ -162,6 +195,7 @@ let folderForm = reactive({
       })
 
 let docTable = reactive([])
+let pathTable = reactive([])
 let collectTable = reactive([])
 let docCount = ref(0)
 let docLoading = ref(true)
@@ -184,7 +218,7 @@ function formatDate2(row, column){
 }
 
 function userCreateDoc(){
-  var promise = createRootDoc(docForm.docName)
+  var promise = createFolderDoc(docForm.docName, folder_id.value, is_in_team.value, team_id.value)
   promise.then((res => {
     if(res.code==1){
       ElMessage({
@@ -192,7 +226,7 @@ function userCreateDoc(){
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }else{
       ElMessage.error(res.message)
     }
@@ -201,7 +235,7 @@ function userCreateDoc(){
 }
 
 function userCreateFolder(){
-  var promise = createRootFolder(folderForm.folderName)
+  var promise = createFolderFolder(folderForm.folderName, folder_id.value, is_in_team.value, team_id.value)
   promise.then((res => {
     if(res.code==1){
       ElMessage({
@@ -209,7 +243,7 @@ function userCreateFolder(){
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }else{
       ElMessage.error(res.message)
     }
@@ -217,8 +251,8 @@ function userCreateFolder(){
   folderDialogVisible.value = false
 }
 
-function getRootDoc(){
-  var promise = rootDoc()
+function getFolderDoc(){
+  var promise = folderDoc(folder_id.value)
   promise.then((res => {
     docTable = res.res
     docTable.sort(function(a, b){
@@ -229,14 +263,15 @@ function getRootDoc(){
     docLoading.value = false
   }))
 }
-
-// function getCollectDoc(){
-//   var promise = allCollect()
-//   promise.then((res => {
-//     collectTable = res.id_group
-//     docLoading.value = false
-//   }))
-// }
+function getSelfPath(){
+  var promise = getPath(folder_id.value)
+  promise.then((res => {
+    pathTable = res.res
+    var selfFolder = pathTable.pop()
+    folder_name.value = selfFolder.name
+    docLoading.value = false
+  }))
+}
 
 function cancelCollectDoc(row) {
   row.is_collect = false
@@ -268,9 +303,9 @@ function deleteDF(row){
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }else{
-      ElMessage.error('Oops, this is a error message.')
+      ElMessage.error(res.message)
     }
   }))
 }
@@ -293,7 +328,7 @@ function deleteAll(){
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }))
   }
 }
@@ -320,7 +355,7 @@ function moveDocs(){
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }))
   moveDialogVisible.value = false
 }
@@ -341,5 +376,10 @@ function moveDocs(){
   .desktop-main{
     height: 95%;
   }
+  .el-breadcrumb  /deep/  .el-breadcrumb__inner 
+      {
+        font-size: 20px !important;				//你想要设置的字体颜色
+    }
+
 }
 </style>

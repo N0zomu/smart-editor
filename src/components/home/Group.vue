@@ -33,7 +33,7 @@
     <el-divider style="margin: 1px;"/>
     <el-main class="group-main">
       <el-table :data="teamTable" style="width: 100%" v-loading="teamLoading">
-        <el-table-column label="团队名称" width="180" sortable>
+        <el-table-column label="团队名称" width="180">
           <template #default="scope">
             <div style="display: flex; align-items: center">
               <el-icon><user /></el-icon>

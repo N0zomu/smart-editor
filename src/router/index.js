@@ -47,6 +47,10 @@ const routes = [
         name: 'space',
         component: () => import('../components/home/GroupSpace.vue')
       },
+      {
+        path: '/home/folder/:docId', 
+        component: () => import('../components/home/Folder.vue')
+      },
     ]
   }
 ]

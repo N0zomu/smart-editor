@@ -10,7 +10,7 @@
 						trigger="click" v-if="!docLoading"
 						>
 						<template #reference>
-							<el-icon style="cursor: pointer;"><UserFilled /></el-icon>
+							<el-icon style="cursor: pointer;" @click="getTeamMembers"><UserFilled /></el-icon>
 						</template>
 						<template #default>
               <el-text size="large" tag="b">创建者</el-text>
@@ -37,11 +37,11 @@
                   <el-text size="large" tag="b">团队成员</el-text>
                 </el-col>
                 <el-col :span="2">
-                  <el-icon style="cursor: pointer;" @click="addMemberVisible=true;console.log(addMemberVisible)"><CirclePlus /></el-icon>
+                  <el-icon style="cursor: pointer;" @click="addMemberVisible=true;" v-if="store.user_id==team_creator.user_id"><CirclePlus /></el-icon>
                 </el-col>
               </el-row>              
               <el-divider style="margin: 1px;"/> 
-              <el-scrollbar height="400px">
+              <el-scrollbar height="400px"  v-loading="teamMemberLoading">
                 <el-row style="margin-top:10%;margin-bottom:10%" v-for="member in memberList" :key="member.user_id">
                   <el-col :span="4">
                     <el-avatar
@@ -58,7 +58,7 @@
                     </div>
                   </el-col>
                   <el-col :span="6">
-                    <el-button type="danger" icon="Delete" style="margin-top: 20%;"/>
+                    <el-button type="danger" icon="Delete" style="margin-top: 20%;" v-if="store.user_id==team_creator.user_id" @click="userQuitMember(member.user_id)"/>
                   </el-col>
                 </el-row>
               </el-scrollbar>
@@ -203,8 +203,8 @@
         <el-button icon="Search" @click="userSearchUser"/>
       </template>
     </el-input>
-    <el-card style="max-width: 480px;margin-top: 5%;margin-bottom:5%" shadow="never">
-      <p v-if="false">无数据</p>
+    <el-card style="max-width: 480px;margin-top: 5%;margin-bottom:5%" shadow="never" v-loading="searchLoading">
+      <p v-if="searchResultUser.id==null">无数据</p>
       <el-row v-else>
         <el-col :span="4">
           <el-avatar
@@ -221,36 +221,37 @@
           </div>
         </el-col>
         <el-col :span="4" style="display:flex">
-          <el-button type="primary" style="align-self: center;">添加</el-button>
+          <el-button type="info" plain disabled style="align-self: center;" v-if="searchResultUser.has_in_team">已加入</el-button>
+          <el-button type="info" plain disabled style="align-self: center;" v-else-if="searchResultUser.has_send">等待接受</el-button>
+          <el-button type="primary" style="align-self: center;" v-else @click="userAddMember">添加</el-button>
         </el-col>
       </el-row>
     </el-card>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="addMemberVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="userAddMember">
-          Confirm
-        </el-button>
-      </div>
-    </template>
   </el-dialog>
 </template>
 
 <script setup>
+import { userStore } from '../../stores/user'
 import {ref, reactive, onMounted, toRaw} from 'vue'
 import {allTeamRootDoc, deleteDoc, collectDoc, cancelCollect, allCollect, teamRootDoc, teamRootFolder, moveDoc} from "../../api/document.js"
-import {teamInfo, teamMembers} from '../../api/team'
+import {teamInfo, teamMembers, quitMember} from '../../api/team'
+import {searchUser} from '../../api/user';
+import {sendTeamMsg} from '../../api/message';
 import moment from 'moment'
-import { ElMessage, ElNotification } from 'element-plus';
+import { ElMessage, ElNotification, ElMessageBox } from 'element-plus';
 import {useRoute} from 'vue-router'
 import DocTree from '../DocTree';
+import { useRouter } from "vue-router";
+const router = useRouter()
 const route = useRoute()
+const store = userStore()
 let team_id = ref(0)
 let team_name = ref('')
 let team_creator = ref('')
 let moveDialogVisible = ref(false)
 let addMemberVisible = ref(false)
 let memberList = reactive([])
+let teamMemberLoading = ref(false)
 
 let dst_doc = ref(0)
 function receiveMessageFromChild(message){
@@ -263,13 +264,23 @@ onMounted(() => {
     team_name.value = res.team_name
     var promise2 = teamMembers(team_id.value)
     promise2.then((res =>{
-      for(var m of res.res){
-        if(m.perm===1){
-          team_creator = m
-        }else{
-          memberList.push(m)
+      if(res.code==0){
+        ElMessageBox.alert('This is a message', 'Title', {
+        confirmButtonText: 'OK',
+        callback: () => {
+          router.go(-1)
+        },
+      })
+      }else{
+        for(var m of res.res){
+          if(m.perm===1){
+            team_creator = m
+          }else{
+            memberList.push(m)
+          }
+          teamMemberLoading.value = false
+          getRootDoc()
         }
-        getRootDoc()
       }
     }))
   }))
@@ -290,20 +301,17 @@ let docTable = reactive([])
 let collectTable = reactive([])
 let docCount = ref(0)
 let docLoading = ref(true)
+let searchLoading = ref(false)
 
 let selectDoc = reactive([])
 
 let searchKey = ref('')
-let searchResultUser = reactive({
-            "user_id": 1,
-            "perm": 0,
-            "nickname": "testUser",
-            "email": "123456@163.com",
-            "icon": ""
-        })
+let searchResultUser = reactive({})
 
 function handleClickX(){
   addMemberVisible.value = false
+  searchKey.value = ''
+  searchResultUser = {}
 }
 
 function handleSelectionChange(val){
@@ -443,7 +451,6 @@ function moveDocs(){
       allAPI.push(moveDoc(d.doc_id, dst_doc.value))
     }
     Promise.all(allAPI).then((res =>{
-      console.log(res)
       ElMessage({
         message: "移动成功！",
         type: 'success',
@@ -454,8 +461,57 @@ function moveDocs(){
   moveDialogVisible.value = false
 }
 
+function getTeamMembers(){
+  memberList.splice(0, memberList.length)
+  teamMemberLoading.value = true
+  var promise = teamMembers(team_id.value)
+  promise.then((res =>{
+    for(var m of res.res){
+      if(m.perm===1){
+        team_creator = m
+      }else{
+        memberList.push(m)
+      }
+    }
+    teamMemberLoading.value = false
+  }))
+}
+
+function userSearchUser(){
+  searchLoading.value = true
+  var promise = searchUser(searchKey.value, team_id.value)
+  promise.then((res =>{
+    searchResultUser = res
+    searchLoading.value = false
+  }))
+}
+
 function userAddMember(){
+  var promise = sendTeamMsg(searchResultUser.id, team_id.value)
+  promise.then((res =>{
+    console.log(res)
+    ElMessage({
+      message: "已发送邀请信息！",
+      type: 'success',
+    })
+  }))
   addMemberVisible.value = false
+}
+
+function userQuitMember(user_id){
+  var promise = quitMember(team_id.value, user_id)
+  promise.then((res =>{
+    ElMessage({
+      message: "成功删除此成员！",
+      type: 'success',
+    })
+  }))
+  for(var i in memberList){
+    if(memberList[i].user_id==user_id){
+      memberList.splice(i, 1)
+      break
+    }
+  }
 }
 </script>
 

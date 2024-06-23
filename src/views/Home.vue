@@ -18,11 +18,50 @@
 					</div>
 				</el-col>
 				<el-col :span="1">
-					<div class="home-header-notification">
-						<el-badge :value="12	" class="item">
-							<el-button icon="Bell" circle />
-						</el-badge>
-					</div>
+					<el-popover
+						:width="500"
+						popper-style="box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;"
+						trigger="click"
+						>
+						<template #reference>
+							<div class="home-header-notification">
+								<el-button icon="Bell" circle @click="getAllMsg"/>
+							</div>
+						</template>
+						<template #default>
+							<el-tabs v-model="activeName" >
+							<el-tab-pane label="待处理" name="first" v-loading="msgListLoading">
+								<el-scrollbar height="400px">
+									<el-row v-for="msg in msgList0" :key="msg.msg_id" style="margin-bottom: 15px;" >
+										<el-col :span="16" >
+											<p style="float:left; font-weight:bold">{{msg.sender}}</p> <p style="float:left">邀请您加入</p><p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
+										</el-col>
+										<el-col :span="4">
+											<el-button type="success" plain @click="enterTeam(msg.msg_id, msg.ref_id)">接受</el-button>
+										</el-col>
+										<el-col :span="4">
+											<el-button type="info" plain @click="neglect(msg.msg_id)">忽略</el-button>
+										</el-col>
+									</el-row>
+									<p v-if="msgList0.length==0" style="width: 100%;height: 45px;display: block;line-height: 45px;text-align: center;">暂无数据！</p>
+								</el-scrollbar>
+							</el-tab-pane>
+							<el-tab-pane label="已处理" name="second" v-loading="msgListLoading">
+								<el-scrollbar height="400px">
+									<el-row v-for="msg in msgList1" :key="msg.msg_id" style="margin-bottom: 15px;">
+										<el-col :span="20" >
+											<p style="float:left; font-weight:bold">{{msg.sender}}</p> <p style="float:left">邀请您加入</p><p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
+										</el-col>
+										<el-col :span="4">
+											<el-button type="danger" plain @click="userDeleteMsg(msg.msg_id)">删除</el-button>
+										</el-col>
+									</el-row>
+									<p v-if="msgList1.length==0" style="width: 100%;height: 45px;display: block;line-height: 45px;text-align: center;">暂无数据！</p>
+								</el-scrollbar>
+							</el-tab-pane>
+						</el-tabs>
+						</template>
+					</el-popover>
 				</el-col>
 				<el-col :span="1"><div class="home-header-avatar">
 					<el-popover
@@ -139,8 +178,10 @@
 
 <script>
 import { userStore } from '../stores/user.js'
+import {all0Msg, all1Msg, handleMsg, deleteMsg} from '../api/message'
 import { ElMessage } from 'element-plus'
 import {selfInfo} from '../api/user.js'
+import {addMember} from '../api/team'
 const store = userStore()
 export default {
 	data() {
@@ -155,6 +196,10 @@ export default {
 			email: '',
 			iconURL: '',
 			isVIP: false,
+			activeName: 'first',
+			msgListLoading: true,
+			msgList0: [],
+			msgList1: [],
 		}
 	},
 	created() {
@@ -174,12 +219,14 @@ export default {
 				this.email = store.email
 				this.iconURL = store.icon
 				this.isVIP = store.isVIP
+				this.getAllMsg()
 			}))
 		}else{
 			this.nickname = store.nickname
 			this.email = store.email
 			this.iconURL = store.icon
 			this.isVIP = store.isVIP
+			this.getAllMsg()
 		}
 	},
 	watch: {
@@ -203,6 +250,69 @@ export default {
 				type: 'success',
 			})
 			this.$router.push({ path: "/login" })
+		},
+		getAllMsg(){
+			this.msgListLoading=true
+			var APIList = [all0Msg(), all1Msg()]
+			Promise.all(APIList).then((res =>{
+				for(var r of res){
+					if(r.status==0){
+						this.msgList0 = r.messages
+					}else{
+						this.msgList1 = r.messages
+					}
+				}
+				this.msgListLoading = false
+			}))
+			
+		},
+		enterTeam(msg_id, team_id){
+			var promise = handleMsg(msg_id)
+			promise.then((res =>{
+				ElMessage({
+					message: "成功加入团队！",
+					type: 'success',
+				})
+			}))
+			addMember(team_id, store.user_id)
+			for(var i in this.msgList0){
+				if(this.msgList0[i].msg_id==msg_id){
+					this.msgList1.push(this.msgList0[i])
+					this.msgList0.splice(i, 1)
+					break
+				}
+			}
+		},
+		neglect(msg_id){
+			var promise = handleMsg(msg_id)
+			promise.then((res =>{
+				ElMessage({
+					message: "已处理！",
+					type: 'info',
+				})
+			}))
+			for(var i in this.msgList0){
+				if(this.msgList0[i].msg_id==msg_id){
+					this.msgList1.push(this.msgList0[i])
+					this.msgList0.splice(i, 1)
+					break
+				}
+			}
+		},
+		userDeleteMsg(msg_id){
+			var promise = deleteMsg(msg_id)
+			promise.then((res =>{
+				ElMessage({
+					message: "已删除！",
+					type: 'info',
+				})
+			}))
+			for(var i in this.msgList1){
+				if(this.msgList1[i].msg_id==msg_id){
+					this.msgList1.splice(i, 1)
+					break
+				}
+			}
 		}
 	}
 }

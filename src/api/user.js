@@ -19,3 +19,10 @@ export function selfInfo(){
   let param={};
   return get("/user/selfInfo",param);
 }
+
+export function searchUser(email, team_id){
+  let data={};
+  data.email=email;
+  data.team_id=team_id;
+  return post("/user/searchEmail",data);
+}

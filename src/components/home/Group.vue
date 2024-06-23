@@ -32,7 +32,7 @@
     </el-header>
     <el-divider style="margin: 1px;"/>
     <el-main class="group-main">
-      <el-table :data="teamTable" style="width: 100%" v-loading="teamLoading">
+      <el-table :data="teamTable" style="width: 100%" v-loading="teamLoading" :key="tableKey">
         <el-table-column label="团队名称" width="180">
           <template #default="scope">
             <div style="display: flex; align-items: center">
@@ -47,8 +47,11 @@
         <el-table-column prop="created_time" label="创建时间" :formatter="formatDate" sortable/>
         <el-table-column label="操作" width="180px">
           <template #default="scope">
-            <el-button type="danger"  @click=openDeleteDialog(scope.row)>
-              <el-icon ><Delete /></el-icon>
+            <el-button type="danger"  @click=openDeleteDialog(scope.row) v-if="scope.row.creator_id==store.user_id">
+              删除
+            </el-button>
+            <el-button type="danger" @click=quitTeam(scope.row) v-else>
+              退出
             </el-button>
           </template>
         </el-table-column>
@@ -88,10 +91,12 @@
 </template>
 
 <script setup>
+import { userStore } from '../../stores/user'
 import {ref, reactive, onMounted, toRaw} from 'vue'
-import {createTeam, allTeam, deleteTeam, searchTeam} from "../../api/team.js"
+import {createTeam, allTeam, deleteTeam, searchTeam, quitSelf} from "../../api/team.js"
 import moment from 'moment'
 import { ElMessage } from 'element-plus'
+const store = userStore()
 let dialogFormVisible= ref(false)
 let deleteFormVisible = ref(false)
 let form = reactive({
@@ -102,6 +107,7 @@ let teamCount = ref(0)
 let teamLoading = ref(true)
 let deleteId = ref(0)
 let searchKey = ref('')
+let tableKey = ref(true)
 
 onMounted(() => {
   getAllTeam()
@@ -174,6 +180,31 @@ function userSearchTeam(){
       teamLoading.value = false
   }))
   }
+}
+
+function quitTeam(t){
+  var team = toRaw(t)
+  for(var i in teamTable){
+    if(teamTable[i].team_id==team.team_id){
+      teamTable.splice(i, 1)
+      tableKey.value = !tableKey.value
+      break
+    }
+  }
+  var promise = quitSelf(team.team_id)
+  promise.then((res =>{
+    if(res.code==1){
+      ElMessage({
+        message: res.message,
+        type: 'success',
+      })
+    }else{
+      ElMessage({
+        message: res.message,
+        type: 'warning',
+      })
+    }
+  }))
 }
 </script>
 

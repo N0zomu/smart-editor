@@ -33,3 +33,23 @@ export function teamMembers(team_id){
   data.team_id=team_id;
   return post("/team/allMember",data);
 }
+
+export function addMember(team_id, user_id){
+  let data={};
+  data.team_id=team_id;
+  data.user_id=user_id;
+  return post("/team/add",data);
+}
+
+export function quitMember(team_id, user_id){
+  let data={};
+  data.team_id=team_id;
+  data.user_id=user_id;
+  return post("/team/quit",data);
+}
+
+export function quitSelf(team_id){
+  let data={}
+  data.team_id=team_id
+  return post("/team/quitSelf", data)
+}

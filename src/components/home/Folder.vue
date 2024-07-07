@@ -70,7 +70,7 @@
               <el-link :href="`/home/folder/${scope.row.doc_id}`" v-if="scope.row.is_folder">
                 <span style="margin-left: 10px">{{ scope.row.doc_name }}</span>
               </el-link>
-              <el-link :href="`/home/space/${scope.row.team_id}`" v-else>
+              <el-link :href="`/doc/${scope.row.doc_id}`" v-else>
                 <span style="margin-left: 10px">{{ scope.row.doc_name }}</span>
               </el-link>
             </div>

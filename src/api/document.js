@@ -114,3 +114,16 @@ export function getPath(doc_id){
   data.doc_id = doc_id;
   return post("/doc/path",data);
 }
+
+export function docContent(doc_id){
+  let data={};
+  data.doc_id = doc_id;
+  return post("/doc/docContent",data);
+}
+
+export function updateDoc(doc_id, content){
+  let data={};
+  data.doc_id = doc_id;
+  data.content = content
+  return post("/doc/updateDoc",data);
+}

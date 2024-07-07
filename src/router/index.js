@@ -52,7 +52,12 @@ const routes = [
         component: () => import('../components/home/Folder.vue')
       },
     ]
-  }
+  },
+  {
+    path: '/doc/:docId',
+    name: 'doc',
+    component: () => import('../views/DocEditView.vue'),
+  },
 ]
 
 const router = createRouter({

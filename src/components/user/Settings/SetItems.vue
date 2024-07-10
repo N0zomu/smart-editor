@@ -11,7 +11,12 @@ export default {
 <style>
 
 .body_setItems {
-    background-color: #4b70e2;
+    /*background-color: #4b70e2;*/
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+
 }
 
 </style>

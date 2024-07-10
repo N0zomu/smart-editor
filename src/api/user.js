@@ -14,3 +14,8 @@ export function Login(email, password){
   data.password=password;
   return post("/user/login",data);
 }
+
+export function selfInfo(){
+  let param={};
+  return get("/user/selfInfo",param);
+}

@@ -1,9 +1,13 @@
 <template>
     <div class="body_userHome">
-        <section>
+        <div class="header_userHome">
+            <el-icon style="margin-right: 8px" @click="jumpBack_userHome"><ArrowLeft /></el-icon>
+            个人设置
+        </div>
+        <section class="section_userHome">
             <d-splitter class="splitter-border_UH" :orientation="orientation" :splitBarSize="splitBarSize">
                 <template v-slot:DSplitterPane>
-                    <d-splitter-pane minSize="23%">
+                    <d-splitter-pane minSize="15%">
                         <div class="pane-content">
                             <PageList/>
                         </div>
@@ -30,6 +34,7 @@
 import { defineComponent, ref } from 'vue';
 import PageList from "@/components/user/PageList/PageList.vue";
 import SetItems from "@/components/user/Settings/SetItems.vue";
+import router from "@/router";
 
 export default defineComponent ({
     name: "userHome",
@@ -48,6 +53,9 @@ export default defineComponent ({
         const collapsedChange = (event) => {
             console.log(event);
         };
+        const jumpBack_userHome = () => {
+            router.push('home')
+        }
 
         return {
             orientation,
@@ -57,25 +65,36 @@ export default defineComponent ({
             maxSize,
             sizeChange,
             collapsedChange,
+            jumpBack_userHome
         };
     },
 });
 </script>
 
 <style>
-.pane-content {
-    padding: 0 5px;
-}
-
 .body_userHome {
-    height: calc(100vh - 70px);
+    height: 100vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
+.header_userHome {
+    padding-left: 30px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .splitter-border_UH {
     border: 1px solid #dfe1e6;
     height: 100%;
+}
+
+.section_userHome {
+    border: 4px;
 }
 </style>

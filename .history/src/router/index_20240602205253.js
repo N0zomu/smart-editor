@@ -12,14 +12,15 @@ const routes = [
     component: () => import('../views/LoginSwitch.vue')
   },
   {
-    path: '/editor/:hashcode',
-    name: 'editor',
-    component: () => import('../views/Editor.vue'),
-  },
-  {
+<<<<<<< HEAD
     path: '/user',
     name: 'userHome',
     component: () => import('../components/user/UserHome.vue')
+=======
+    path: '/editor/:hashcode',
+    name: 'editor',
+    component: () => import('../views/Editor.vue'),
+>>>>>>> ly
   },
   {
     path: '/home',

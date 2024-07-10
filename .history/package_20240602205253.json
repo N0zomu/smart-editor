@@ -30,11 +30,15 @@
     "sass": "^1.77.0",
     "sass-loader": "^14.2.1",
     "vue": "^3.2.13",
+<<<<<<< HEAD
     "vue-devui": "^1.6.18",
+    "vue-router": "^4.3.2"
+=======
     "vue-router": "^4.3.2",
     "y-prosemirror": "^1.2.5",
     "y-webrtc": "^10.3.0",
     "yjs": "^13.6.15"
+>>>>>>> ly
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

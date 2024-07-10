@@ -7,8 +7,10 @@ import App from './App.vue'
 import router from './router'
 import './assets/css/global.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+<<<<<<< HEAD
 import Splitter from 'vue-devui/splitter'
 import 'vue-devui/splitter/style.css'
+=======
 import axios from "axios";
 
 const pinia = createPinia()
@@ -16,7 +18,7 @@ pinia.use(
   createPersistedState({
     storage: sessionStorage,
   })
-)
+)>>>>>>> origin/ly
 
 axios.interceptors.request.use(config => {
   config.headers.Authorization = window.sessionStorage.getItem('user')? JSON.parse(window.sessionStorage.getItem('user')).token:""

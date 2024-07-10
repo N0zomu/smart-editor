@@ -120,6 +120,7 @@
       </div>
     </template>
   </el-dialog>
+  
   <el-dialog :model-value="moveDialogVisible" title="移动" width="500">
     <doc-tree @message-to-parent="receiveMessageFromChild"></doc-tree>
     <template #footer>

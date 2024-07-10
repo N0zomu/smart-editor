@@ -223,7 +223,7 @@ onMounted(() => {
   doc_id.value = parseInt(route.params.docId)
   docContent(doc_id.value).then((res)=>{
     docName.value = res.doc_name
-    editor.content = res.content
+    editor.value.commands.setContent(JSON.parse(res.content), false) 
     team_id.value = res.team_id
     teamName.value = res.team_name
     let m1 = moment(res.update_time)
@@ -275,12 +275,13 @@ function goBack(){
 
 function saveContent(){
   var content = editor.value.getJSON()
-  updateDoc(doc_id.value, content).then((res)=>{
+  updateDoc(doc_id.value, JSON.stringify(content)).then((res)=>{
     if(res.code==1){
       ElMessage({
         message: "保存成功！",
         type: 'success',
       })
+      updateTime.value = 'a few seconds'
     }
   })
 }

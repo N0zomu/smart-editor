@@ -109,6 +109,16 @@ export function allCollect(){
   return get("/doc/allCollection",param);
 }
 
+export function allRecent(){
+  let param={};
+  return get("/doc/recent",param);
+}
+
+export function allDelete(){
+  let param={};
+  return get("/doc/getDelete",param);
+}
+
 export function getPath(doc_id){
   let data={};
   data.doc_id = doc_id;
@@ -126,4 +136,15 @@ export function updateDoc(doc_id, content){
   data.doc_id = doc_id;
   data.content = content
   return post("/doc/updateDoc",data);
+}
+
+export function completeDelete(doc_id){
+  let data={};
+  data.doc_id = doc_id;
+  return post("/doc/completeDelete",data);
+}
+
+export function completeDeleteAll(){
+  let param={};
+  return get("/doc/deleteAll",param);
 }

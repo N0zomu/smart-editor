@@ -123,11 +123,11 @@
 							</div>
 						</template>
 						<template #default>
-							<el-button icon="Document" round style="width: 200px; height: 50px"> 文档 </el-button>
+							<el-button icon="Document" round style="width: 200px; height: 50px" @click="docDialogVisible=true"> 文档 </el-button>
 							<el-divider/>
-							<el-button icon="Folder" round style="width: 200px; height: 50px">文件夹</el-button>
+							<el-button icon="Folder" round style="width: 200px; height: 50px" @click="folderDialogVisible=true">文件夹</el-button>
 							<el-divider/>
-							<el-button icon="User" round style="width: 200px; height: 50px">团队空间</el-button>
+							<el-button icon="User" round style="width: 200px; height: 50px" @click="teamDialogVisible=true">团队空间</el-button>
 						</template>
 					</el-popover>
 				<!-- <el-divider /> -->
@@ -174,6 +174,54 @@
 			</el-main>
 		</el-container>
 	</el-container>
+
+	<el-dialog v-model="docDialogVisible" title="新建文档" width="500" align-center @close="docForm.docName=''">
+    <el-form :model="docForm">
+      <el-form-item>
+        <el-input v-model="docForm.docName" placeholder="请输入文件名称" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="docDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="menuCreateDoc" :disabled="docForm.docName==''">
+          确认
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="folderDialogVisible" title="新建文件夹" width="500" align-center @close="folderForm.folderName=''">
+    <el-form :model="folderForm">
+      <el-form-item>
+        <el-input v-model="folderForm.folderName" placeholder="请输入文件夹名称" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="folderDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="menuCreateFolder" :disabled="folderForm.folderName==''">
+          确认
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+	<el-dialog v-model="teamDialogVisible" title="新建团队空间" width="500" align-center @close="teamForm.teamName=''">
+    <el-form :model="teamForm">
+      <el-form-item>
+        <el-input v-model="teamForm.teamName" placeholder="请输入团队名称" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="teamDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="menuCreateSpace" :disabled="teamForm.teamName==''">
+          确认
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script>
@@ -181,7 +229,8 @@ import { userStore } from '../stores/user.js'
 import {all0Msg, all1Msg, handleMsg, deleteMsg} from '../api/message'
 import { ElMessage } from 'element-plus'
 import {selfInfo} from '../api/user.js'
-import {addMember} from '../api/team'
+import {addMember, createTeam} from '../api/team'
+import {createRootDoc, createRootFolder, createFolderDoc, createFolderFolder, teamRootDoc, teamRootFolder} from '@/api/document';
 const store = userStore()
 export default {
 	data() {
@@ -200,6 +249,18 @@ export default {
 			msgListLoading: true,
 			msgList0: [],
 			msgList1: [],
+			docDialogVisible: false,
+			folderDialogVisible: false,
+			teamDialogVisible: false,
+			docForm: {
+				docName:""
+			},
+			folderForm: {
+				folderName:""
+			},
+			teamForm: {
+				teamName:""
+			}
 		}
 	},
 	created() {
@@ -240,6 +301,30 @@ export default {
     }
   },
 	methods: {
+		menuCreateDoc(){
+			var flag = this.$route.name
+			if(flag=='space'){
+				var team_id = this.$route.path.split('/').at(-1)
+				teamRootDoc(this.docForm.docName, team_id).then((res=>{
+					location.reload()
+				}))
+			}
+			else if(flag=='folder'){
+				var folder_id = this.$route.path.split('/').at(-1)
+				createFolderDoc()
+			}
+			else{
+
+			}
+		},
+		menuCreateFolder(){
+			var flag = this.$route.name
+			console.log(this.$route.name)
+		},
+		menuCreateSpace(){
+			var flag = this.$route.name
+			console.log(this.$route.name)
+		},
 		saveNavState(path) {
       this.activePath = path
     },

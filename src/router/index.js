@@ -24,22 +24,27 @@ const routes = [
     children: [
       {
         path: '/home/recent', 
+        name: 'recent',
         component: () => import('../components/home/Recent.vue')
       },
       {
         path: '/home/desktop', 
+        name: 'desktop',
         component: () => import('../components/home/Desktop.vue')
       },
       {
         path: '/home/group', 
+        name: 'group',
         component: () => import('../components/home/Group.vue')
       },
       {
         path: '/home/collection', 
+        name: 'collection',
         component: () => import('../components/home/Collection.vue')
       },
       {
         path: '/home/trash', 
+        name: 'trash',
         component: () => import('../components/home/Trash.vue')
       },
       {
@@ -49,6 +54,7 @@ const routes = [
       },
       {
         path: '/home/folder/:docId', 
+        name: 'folder',
         component: () => import('../components/home/Folder.vue')
       },
     ]

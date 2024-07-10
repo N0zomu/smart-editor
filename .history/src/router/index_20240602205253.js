@@ -12,14 +12,15 @@ const routes = [
     component: () => import('../views/LoginSwitch.vue')
   },
   {
-    path: '/editor/:hashcode',
-    name: 'editor',
-    component: () => import('../views/Editor.vue'),
-  },
-  {
+<<<<<<< HEAD
     path: '/user',
     name: 'userHome',
     component: () => import('../components/user/UserHome.vue')
+=======
+    path: '/editor/:hashcode',
+    name: 'editor',
+    component: () => import('../views/Editor.vue'),
+>>>>>>> ly
   },
   {
     path: '/home',
@@ -29,27 +30,22 @@ const routes = [
     children: [
       {
         path: '/home/recent', 
-        name: 'recent',
         component: () => import('../components/home/Recent.vue')
       },
       {
         path: '/home/desktop', 
-        name: 'desktop',
         component: () => import('../components/home/Desktop.vue')
       },
       {
         path: '/home/group', 
-        name: 'group',
         component: () => import('../components/home/Group.vue')
       },
       {
         path: '/home/collection', 
-        name: 'collection',
         component: () => import('../components/home/Collection.vue')
       },
       {
         path: '/home/trash', 
-        name: 'trash',
         component: () => import('../components/home/Trash.vue')
       },
       {
@@ -57,18 +53,8 @@ const routes = [
         name: 'space',
         component: () => import('../components/home/GroupSpace.vue')
       },
-      {
-        path: '/home/folder/:docId', 
-        name: 'folder',
-        component: () => import('../components/home/Folder.vue')
-      },
     ]
-  },
-  {
-    path: '/doc/:docId',
-    name: 'doc',
-    component: () => import('../views/DocEditView.vue'),
-  },
+  }
 ]
 
 const router = createRouter({

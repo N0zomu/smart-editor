@@ -71,7 +71,6 @@ function regain(row) {
       rendertable.value = !rendertable.value
     }
   }
-  console.log(row.is_folder)
   var promise = regainDoc(row.doc_id, row.is_folder)
   promise.then((res => {
     ElMessage({

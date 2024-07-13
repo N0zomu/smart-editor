@@ -7,12 +7,7 @@
       <div :class="['container', 'container-register', { 'is-txl': isLogin }]">
         <form>
           <h2 class="title">注册</h2>
-          <div class="form__icons">
-            <img class="form__icon" src="@/assets/images/wechat.png" alt="微信登录">
-            <img class="form__icon" src="@/assets/images/alipay.png" alt="支付宝登录">
-            <img class="form__icon" src="@/assets/images/QQ.png" alt="QQ登录">
-          </div>
-          <span class="text">或使用邮箱进行注册</span>
+          <span class="text">使用邮箱进行注册</span>
           <!-- <input class="form__input" type="text" placeholder="请输入用户名" v-model="registerForm.name" required="required"/>
           <input class="form__input" type="text" placeholder="请输入邮箱" v-model="registerForm.email" required="required"/>
           <input class="form__input" type="password" placeholder="请输入密码" v-model="registerForm.password" required="required"/> -->
@@ -42,12 +37,7 @@
       <div :class="['container', 'container-login', { 'is-txl is-z200': isLogin }]">
         <form>
           <h2 class="title">登录</h2>
-          <div class="form__icons">
-            <img class="form__icon" src="@/assets/images/wechat.png" alt="微信登录">
-            <img class="form__icon" src="@/assets/images/alipay.png" alt="支付宝登录">
-            <img class="form__icon" src="@/assets/images/QQ.png" alt="QQ登录">
-          </div>
-          <span class="text">或使用邮箱登录</span>
+          <span class="text">使用邮箱登录</span>
           <!-- <input class="form__input" type="text" placeholder="请输入邮箱" v-model="loginForm.email"/>
           <input class="form__input" type="password" placeholder="请输入密码" v-model="loginForm.email"/> -->
           <el-form

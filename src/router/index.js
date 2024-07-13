@@ -62,6 +62,11 @@ const routes = [
         name: 'folder',
         component: () => import('../components/home/Folder.vue')
       },
+      {
+        path: '/home/search', 
+        name: 'search',
+        component: () => import('../components/home/Search.vue')
+      },
     ]
   },
   {

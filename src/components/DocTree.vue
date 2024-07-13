@@ -109,7 +109,6 @@ function getCheckedNodes(node, e) {
 }
 
 onMounted(() => {
-  console.log(props.is_team, props.team_id)
   // team_id.value = route.params.teamId
   if(props.is_team){
     teamRootDoc()
@@ -120,6 +119,6 @@ onMounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 
 </style>

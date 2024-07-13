@@ -31,7 +31,7 @@
             >
               <el-avatar v-if="!docLoading"
                 :size="60"
-                :src="'http://152.136.110.235:8000'+iconURL"
+                :src="'http://152.136.110.235'+iconURL"
                 style="margin-bottom: 8px;margin-left: 50px">
                 user
               </el-avatar>
@@ -55,7 +55,7 @@
               <el-link :underline="false" type="danger" @click="logout">退出登录</el-link>
             </div>
             <template #reference>
-              <el-avatar :src="'http://152.136.110.235:8000'+iconURL" style="margin-right:15px;margin-top:10px;cursor:pointer;"> user </el-avatar>
+              <el-avatar :src="'http://152.136.110.235'+iconURL" style="margin-right:15px;margin-top:10px;cursor:pointer;"> user </el-avatar>
             </template>
           </el-popover>
         </el-space>
@@ -63,14 +63,14 @@
     </el-row>
   </div>
   <div class="EditMain" ref="filecont">
-    <ul v-show="visiblemenu" :style="{ left: position.left + 'px', top: position.top + 'px', display: (visiblemenu ? 'block' : 'none') }" class="contextmenu">
+    <!-- <ul v-show="visiblemenu" :style="{ left: position.left + 'px', top: position.top + 'px', display: (visiblemenu ? 'block' : 'none') }" class="contextmenu">
       <div class="item"  @click="polish()">
         <el-icon><Service /></el-icon>润色
       </div>
       <div class="item" @click="continuation()">
         <el-icon><Service /></el-icon>续写
       </div>
-    </ul>
+    </ul> -->
     
     <div class="lefttools">
       <outline></outline>
@@ -98,6 +98,10 @@
     </div>
     
     <div class="righttools">
+      <polish-card></polish-card>
+      <format-card></format-card>
+      <visible-card></visible-card>
+      <upload-card></upload-card>
     </div>
   </div>
 </template>
@@ -138,6 +142,11 @@ import { ElMessage } from 'element-plus'
 import {docContent, updateDoc} from '@/api/document';
 import moment from 'moment';
 
+import PolishCard from '@/components/editor/PolishCard.vue';
+import FormatCard from '@/components/editor/FormatCard.vue';
+import UploadCard from '@/components/editor/UploadCard.vue';
+import VisibleCard from '@/components/editor/VisibleCard.vue';
+
 
 
 const route = useRoute()
@@ -176,10 +185,8 @@ const loadHeadings = () => {
   if (!editor.value) return
   const transaction = editor.value.state.tr
   if (!transaction) return
-
   editor.value?.state.doc.descendants((node, pos) => {
     if (node.type.name === 'heading') {
-      console.log(pos, node)
       const start = pos
       const end = pos + node.content.size
       // const end = pos + node
@@ -219,11 +226,26 @@ let iconURL = ref(uStore.icon)
 let nickname = ref(uStore.nickname)
 let email = ref(uStore.email)
 
+// 绑定ctrl+S
+window.addEventListener('keydown', handleSave);
+
+function handleSave(event){
+  if (event.ctrlKey && event.key === 's') {
+    event.preventDefault();
+    if(route.name=="doc"){
+      saveContent()
+    }
+  }
+}
+
 onMounted(() => {
   doc_id.value = parseInt(route.params.docId)
   docContent(doc_id.value).then((res)=>{
     docName.value = res.doc_name
-    editor.value.commands.setContent(JSON.parse(res.content), false) 
+    if(res.content!=''){
+      editor.value.commands.setContent(JSON.parse(res.content), false) 
+    }
+    loadHeadings()
     team_id.value = res.team_id
     teamName.value = res.team_name
     let m1 = moment(res.update_time)
@@ -289,6 +311,7 @@ function saveContent(){
 
 // 在组件卸载前销毁Editor实例
 onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleSave)
   editor.value?.destroy();
 });
 
@@ -357,7 +380,6 @@ const selecttext= (e)=>{
     
     var content = selection.toString();
     if(content!=""){
-      console.log(1)
         var rect = filecont.value.getBoundingClientRect();
         visiblemenu.value = true
         // alert(e.clientY)
@@ -467,7 +489,8 @@ const hasscroll=()=>{
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  max-height: 80vh;
+  overflow: auto;
 }
 </style>
 
@@ -475,9 +498,9 @@ const hasscroll=()=>{
 b {
   font-weight: bold;
 }
-.ProseMirror {
-  overflow-y: scroll;
-}
+// .ProseMirror {
+//   overflow-y: scroll;
+// }
 .ProseMirror p {
   margin: 0;
 }

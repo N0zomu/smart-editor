@@ -322,7 +322,6 @@ function deleteAll(){
       allAPI.push(deleteDoc(selectDoc[d].doc_id, selectDoc[d].is_folder))
     }
     Promise.all(allAPI).then((res =>{
-      console.log(res)
       ElMessage({
         message: "删除成功！",
         type: 'success',
@@ -349,7 +348,6 @@ function moveDocs(){
       allAPI.push(moveDoc(d.doc_id, dst_doc.value))
     }
     Promise.all(allAPI).then((res =>{
-      console.log(res)
       ElMessage({
         message: "移动成功！",
         type: 'success',

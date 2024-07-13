@@ -9,32 +9,22 @@
     </el-header>
     <el-divider style="margin: 1px;"/>
     <el-main class="desktop-main">
-      <el-table :data="docTable" style="width: 100%" v-loading="docLoading" :key="rendertable">
-        <el-table-column label="文件名">
-          <template #default="scope">
-            <div style="display: flex; align-items: center">
-              <el-icon v-if="scope.row.is_folder"><folder /></el-icon>
-              <el-icon v-if="!scope.row.is_folder"><document /></el-icon>
-              <el-link :href="`/home/folder/${scope.row.doc_id}`" v-if="scope.row.is_folder">
-                <span style="margin-left: 10px">{{ scope.row.doc_name }}</span>
-              </el-link>
-              <el-link :href="`/doc/${scope.row.doc_id}`" v-else>
-                <span style="margin-left: 10px">{{ scope.row.doc_name }}</span>
-              </el-link>
+      <el-scrollbar height="80vh" v-if="!docLoading">
+        <el-empty description="暂无收藏" v-if="docTable.length==0"/>
+        <el-space wrap style="float:left" v-else>
+          <el-card v-for="doc in docTable" :key="doc.doc_id" shadow="hover"
+            style="height:200px;width: 150px; margin:10px;background-color:#FAFCFF;">
+            <div style="text-align:right;">
+              <el-icon color="#E6A23C" :size="25" @click="cancelCollectDoc(doc)" style="cursor:pointer"><StarFilled /></el-icon>
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="doc_creator" label="创建者"/>
-        <el-table-column prop="created_time" label="创建时间" :formatter="formatDate" sortable/>
-        <el-table-column prop="update_time" label="更新时间" :formatter="formatDate2" sortable/>
-        <el-table-column label="操作">
-          <template #default="scope">
-            <el-button type="warning"  plain @click=cancelCollectDoc(scope.row)>
-              <el-icon><StarFilled /></el-icon>
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+            <el-space @click="goDoc(doc.is_folder, doc.doc_id)" style="cursor:pointer" direction="vertical">
+              <el-icon :size="90" color="#303133" v-if="doc.is_folder"><folder /></el-icon>
+              <el-icon :size="90" color="#303133" v-else><document /></el-icon>
+              <el-text size="large" tag="b">{{doc.doc_name}}</el-text>
+            </el-space>
+          </el-card>
+        </el-space>
+      </el-scrollbar>
     </el-main>
   </el-container>
 </template>
@@ -43,14 +33,16 @@
 import {onMounted, reactive, ref} from 'vue';
 import {allCollect, cancelCollect} from '@/api/document';
 import { ElMessage, ElNotification } from 'element-plus';
+import {useRouter} from 'vue-router';
 import moment from 'moment'
 
-let docTable = reactive([])
+const router = useRouter()
+let docTable = ref([])
 let docLoading = ref(true)
 let rendertable = ref(true)
 onMounted(()=>{
   allCollect().then((res=>{
-    docTable = res.res
+    docTable.value = res.res
     docLoading.value = false
   }))
 })
@@ -64,10 +56,9 @@ function formatDate2(row, column){
 }
 
 function cancelCollectDoc(row) {
-  for(var i in docTable){
-    if(docTable[i].doc_id==row.doc_id){
-      docTable.splice(i, 1)
-      rendertable.value = !rendertable.value
+  for(var i in docTable.value){
+    if(docTable.value[i].doc_id==row.doc_id){
+      docTable.value.splice(i, 1)
     }
   }
   var promise = cancelCollect(row.doc_id)
@@ -78,6 +69,16 @@ function cancelCollectDoc(row) {
       })
   }))
 }
+
+function goDoc(is_folder, doc_id){
+  if(is_folder){
+    router.push(`/home/folder/${doc_id}`)
+  }else{
+    router.push(`/doc/${doc_id}`)
+  }
+  
+}
+
 </script>
 
 <style lang="less" scoped>

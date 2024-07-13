@@ -32,30 +32,43 @@
     </el-header>
     <el-divider style="margin: 1px;"/>
     <el-main class="group-main">
-      <el-table :data="teamTable" style="width: 100%" v-loading="teamLoading" :key="tableKey">
-        <el-table-column label="团队名称" width="180">
-          <template #default="scope">
-            <div style="display: flex; align-items: center">
-              <el-icon><user /></el-icon>
-              <el-link :href="`/home/space/${scope.row.team_id}`">
-                <span style="margin-left: 10px">{{ scope.row.team_name }}</span>
-              </el-link>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="creator" label="创建者" width="180" />
-        <el-table-column prop="created_time" label="创建时间" :formatter="formatDate" sortable/>
-        <el-table-column label="操作" width="180px">
-          <template #default="scope">
-            <el-button type="danger"  @click=openDeleteDialog(scope.row) v-if="scope.row.creator_id==store.user_id">
-              删除
-            </el-button>
-            <el-button type="danger" @click=quitTeam(scope.row) v-else>
-              退出
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <el-scrollbar height="80vh" v-if="!teamLoading">
+        <el-empty description="暂无团队" v-if="teamTable.length==0"/>
+        <el-space wrap style="float:left" v-else>
+          <el-card v-for="team in teamTable" :key="team.team_id" shadow="hover"
+            style="height:100px;width: 300px; margin:10px;">
+            <el-row>
+              <el-col :span="4">
+                <el-icon size="50"><user /></el-icon>
+              </el-col>
+              <el-col :span="16" style="text-align:left; padding: 5px 20px;cursor: pointer;" @click="goTeam(team.team_id)">
+                <p style="font-weight:bold;font-size:large">{{team.team_name}}</p>
+                <p style="font-size:small;color: #909399;">{{team.creator}}</p>
+              </el-col>
+              <el-col :span="4" style="display:flex">
+                <el-tooltip v-if="team.creator_id==store.user_id"
+                  effect="dark"
+                  content="删除"
+                  placement="bottom"
+                >
+                  <div style="margin:auto 0;cursor: pointer;" @click=openDeleteDialog(team)>
+                    <el-icon color="#F56C6C"><DeleteFilled /></el-icon>
+                  </div>
+                </el-tooltip>
+                <el-tooltip v-else
+                  effect="dark"
+                  content="退出"
+                  placement="bottom"
+                >
+                <div style="margin:auto 0;cursor: pointer;" @click=quitTeam(team)>
+                  <el-icon color="#F56C6C"><ArrowRightBold /></el-icon>
+                </div>
+                </el-tooltip>
+              </el-col>
+            </el-row>
+          </el-card>
+        </el-space>
+      </el-scrollbar>
     </el-main>
   </el-container>
 
@@ -96,13 +109,16 @@ import {ref, reactive, onMounted, toRaw} from 'vue'
 import {createTeam, allTeam, deleteTeam, searchTeam, quitSelf} from "../../api/team.js"
 import moment from 'moment'
 import { ElMessage } from 'element-plus'
+import {useRouter} from 'vue-router';
+
+const router = useRouter()
 const store = userStore()
 let dialogFormVisible= ref(false)
 let deleteFormVisible = ref(false)
 let form = reactive({
         teamName:""
       })
-let teamTable = reactive([])
+let teamTable = ref([])
 let teamCount = ref(0)
 let teamLoading = ref(true)
 let deleteId = ref(0)
@@ -112,6 +128,10 @@ let tableKey = ref(true)
 onMounted(() => {
   getAllTeam()
 });
+
+function goTeam(team_id){
+  router.push(`/home/space/${team_id}`)
+}
 
 function formatDate(row, column){
   return moment(row.created_time).utcOffset(8).format('YYYY-MM-DD HH:mm:ss');
@@ -137,7 +157,7 @@ function userCreateTeam(){
 function getAllTeam(){
   var promise = allTeam()
   promise.then((res => {
-    teamTable = res.res
+    teamTable.value = res.res
     teamCount.value = res.count
     teamLoading.value = false
   }))
@@ -175,7 +195,7 @@ function userSearchTeam(){
   }else{
     var promise = searchTeam(searchKey.value)
     promise.then((res => {
-      teamTable = res.users
+      teamTable.value = res.users
       teamCount.value = res.count
       teamLoading.value = false
   }))
@@ -184,9 +204,9 @@ function userSearchTeam(){
 
 function quitTeam(t){
   var team = toRaw(t)
-  for(var i in teamTable){
-    if(teamTable[i].team_id==team.team_id){
-      teamTable.splice(i, 1)
+  for(var i in teamTable.value){
+    if(teamTable.value[i].team_id==team.team_id){
+      teamTable.value.splice(i, 1)
       tableKey.value = !tableKey.value
       break
     }

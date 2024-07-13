@@ -9,8 +9,12 @@
                 <el-icon><star-filled color="#C0C4CC"/></el-icon>
             </el-divider>
             <p style="font-size: 18px; margin-bottom: 4px; font-weight: 400">{{ userName }}</p>
-            <p style="font-size: 12px; color: #a0a5a8">{{userEmail}}</p>
+            <p style="font-size: 12px; color: #a0a5a8">{{ userEmail }}</p>
         </el-card>
+<!--        <el-card class="calendar_PL">-->
+<!--            <el-calendar v-model="value" style="justify-content: center; align-items: center;"/>-->
+<!--        </el-card>-->
+
     </div>
 </template>
 
@@ -23,12 +27,14 @@ export default {
     setup() {
         let url_avatar = ref();
         let userName = ref("星空下的暴走奶昔");
-        let userEmail = ref("I'mGoingTo@Drink.Milkshake")
+        let userEmail = ref("I'mGoingTo@Drink.Milkshake");
+        let value = ref(new Date());
 
         return {
             url_avatar,
             userName,
-            userEmail
+            userEmail,
+            value
         }
     }
 }
@@ -46,6 +52,11 @@ export default {
 
 .info_PL {
     margin: 35px 15px 10px 15px;
+}
+
+.calendar_PL {
+    margin-right: 15px;
+    margin-left: 15px;
 }
 
 </style>

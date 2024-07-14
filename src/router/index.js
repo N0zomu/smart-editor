@@ -4,7 +4,7 @@ const routes = [
   {
     path: '/',
     name: 'temp',
-    component: () => import('../components/HelloWorld.vue')
+    component: () => import('../views/LoginSwitch.vue')
   },
   {
     path: '/login',
@@ -67,12 +67,22 @@ const routes = [
         name: 'folder',
         component: () => import('../components/home/Folder.vue')
       },
+      {
+        path: '/home/search', 
+        name: 'search',
+        component: () => import('../components/home/Search.vue')
+      },
     ]
   },
   {
     path: '/doc/:docId',
     name: 'doc',
     component: () => import('../views/DocEditView.vue'),
+  },
+  {
+    path: '/map',
+    name: 'map',
+    component: () => import('../components/editor/MindMap.vue'),
   },
 ]
 

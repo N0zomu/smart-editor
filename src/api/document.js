@@ -148,3 +148,15 @@ export function completeDeleteAll(){
   let param={};
   return get("/doc/deleteAll",param);
 }
+
+export function getFolderTeam(doc_id){
+  let data={};
+  data.doc_id = doc_id
+  return post('/doc/getFolderTeam', data)
+}
+
+export function search(key){
+  let data={};
+  data.key = key
+  return post('/doc/search', data)
+}

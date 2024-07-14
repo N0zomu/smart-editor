@@ -9,6 +9,16 @@ export function sendTeamMsg(rec_id, team_id){
   return post("/msg/create", data);
 }
 
+export function sendDocMsg(rec_id, team_id, doc_id){
+  let data={};
+  data.rec_id=rec_id;
+  data.is_team=true;
+  data.ref_type="doc";
+  data.team_id = team_id
+  data.ref_id = doc_id
+  return post("/msg/create", data);
+}
+
 export function all0Msg(){
   let data={};
   data.status=0;

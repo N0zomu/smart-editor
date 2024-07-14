@@ -71,7 +71,7 @@ export default defineComponent ({
 });
 </script>
 
-<style>
+<style scoped>
 .body_userHome {
     height: 100vh;
     overflow: hidden;

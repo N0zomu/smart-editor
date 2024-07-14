@@ -297,7 +297,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
 .body_setItems {
     /*background-color: #4b70e2;*/

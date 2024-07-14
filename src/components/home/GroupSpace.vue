@@ -19,7 +19,7 @@
                 <el-col :span="4">
                   <el-avatar
                     :size="50"
-                    :src="'http://152.136.110.235:8000'+team_creator.icon"
+                    :src="'http://152.136.110.235'+team_creator.icon"
                   >
                     user
                   </el-avatar>
@@ -46,7 +46,7 @@
                   <el-col :span="4">
                     <el-avatar
                       :size="50"
-                      :src="'http://152.136.110.235:8000'+member.icon"
+                      :src="'http://152.136.110.235'+member.icon"
                     >
                       user
                     </el-avatar>
@@ -209,7 +209,7 @@
         <el-col :span="4">
           <el-avatar
             :size="50"
-            :src="'http://152.136.110.235:8000'+searchResultUser.icon"
+            :src="'http://152.136.110.235'+searchResultUser.icon"
           >
             user
           </el-avatar>
@@ -489,7 +489,6 @@ function userSearchUser(){
 function userAddMember(){
   var promise = sendTeamMsg(searchResultUser.id, team_id.value)
   promise.then((res =>{
-    console.log(res)
     ElMessage({
       message: "已发送邀请信息！",
       type: 'success',

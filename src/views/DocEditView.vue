@@ -18,7 +18,7 @@
           content="与团队协作"
           placement="bottom"
           >
-            <el-button type="primary" icon="User" style="margin-right:10px;margin-top:10px" v-if="team_id!=0">{{teamName}}</el-button>
+            <el-button type="primary" icon="User" style="margin-right:10px;margin-top:10px" v-if="team_id!=0" @click="teamVisible=true">{{teamName}}</el-button>
           </el-tooltip>
           <el-popover
             placement="bottom"
@@ -31,7 +31,7 @@
             >
               <el-avatar v-if="!docLoading"
                 :size="60"
-                :src="'http://152.136.110.235:8000'+iconURL"
+                :src="'http://152.136.110.235'+iconURL"
                 style="margin-bottom: 8px;margin-left: 50px">
                 user
               </el-avatar>
@@ -55,7 +55,7 @@
               <el-link :underline="false" type="danger" @click="logout">退出登录</el-link>
             </div>
             <template #reference>
-              <el-avatar :src="'http://152.136.110.235:8000'+iconURL" style="margin-right:15px;margin-top:10px;cursor:pointer;"> user </el-avatar>
+              <el-avatar :src="'http://152.136.110.235'+iconURL" style="margin-right:15px;margin-top:10px;cursor:pointer;"> user </el-avatar>
             </template>
           </el-popover>
         </el-space>
@@ -63,14 +63,14 @@
     </el-row>
   </div>
   <div class="EditMain" ref="filecont">
-    <ul v-show="visiblemenu" :style="{ left: position.left + 'px', top: position.top + 'px', display: (visiblemenu ? 'block' : 'none') }" class="contextmenu">
+    <!-- <ul v-show="visiblemenu" :style="{ left: position.left + 'px', top: position.top + 'px', display: (visiblemenu ? 'block' : 'none') }" class="contextmenu">
       <div class="item"  @click="polish()">
         <el-icon><Service /></el-icon>润色
       </div>
       <div class="item" @click="continuation()">
         <el-icon><Service /></el-icon>续写
       </div>
-    </ul>
+    </ul> -->
     
     <div class="lefttools">
       <outline></outline>
@@ -84,7 +84,7 @@
         <div class="editcont">
           <EditorContent v-loading.fullscreen.lock="docLoading"
             @scroll="hasscroll()"
-            @mousemove="mousemove()" 
+            @mousemove="mousemove()"
             @mouseup="selecttext($event)"
             style="padding: 8px;  overflow-y: auto; text-align:left"
             :editor="editor"
@@ -98,8 +98,55 @@
     </div>
     
     <div class="righttools">
+
+      <el-tabs style="margin-top:20px" v-model="activeName">
+        <el-tab-pane name="first">
+          <template #label>
+            <span class="custom-tabs-label">
+              <el-icon><calendar /></el-icon>
+              <span>Route</span>
+            </span>
+          </template>
+          <polish-card></polish-card>
+        </el-tab-pane >
+        <el-tab-pane label="Config" name="second">
+          <format-card></format-card>
+        </el-tab-pane>
+        <el-tab-pane label="Role" name="third">
+          <visible-card></visible-card>
+        </el-tab-pane>
+        <el-tab-pane label="Task" name="fourth">
+          <upload-card></upload-card>
+        </el-tab-pane>
+      </el-tabs>
+      <el-card class="func_card" @click="download">
+        <p>导出文档</p>
+      </el-card>
     </div>
   </div>
+
+  <el-dialog v-model="teamVisible" title="团队协作" width="500">
+    <el-scrollbar height="400px" v-loading = "teamMemberLoading">
+      <el-row style="margin-top:10%;margin-bottom:10%;cursor:pointer" v-for="member in teamMemberList" :key="member.user_id" 
+      v-show="member.user_id!=uStore.user_id" @click="inviteMember(member)">
+        <el-col :span="4">
+          <el-avatar
+            :size="50"
+            :src="'http://152.136.110.235'+member.icon"
+          >
+            user
+          </el-avatar>
+        </el-col>
+        <el-col :span="20">
+          <div style="margin-top: 10px;text-align:left">
+            <p style="margin: 0; font-weight: bold">{{member.nickname}}</p>
+            <p style="margin: 0; font-size: 14px; color: var(--el-color-info)">{{member.email}}</p>
+          </div>
+        </el-col>
+      </el-row>
+      
+    </el-scrollbar>
+  </el-dialog>
 </template>
 
 
@@ -137,11 +184,70 @@ import Outline from '@/components/editor/Outline.vue'
 import { ElMessage } from 'element-plus'
 import {docContent, updateDoc} from '@/api/document';
 import moment from 'moment';
+import {teamMembers} from '@/api/team';
+import {sendDocMsg} from '@/api/message';
 
+import PolishCard from '@/components/editor/PolishCard.vue';
+import FormatCard from '@/components/editor/FormatCard.vue';
+import UploadCard from '@/components/editor/UploadCard.vue';
+import VisibleCard from '@/components/editor/VisibleCard.vue';
+import {TiptapCollabProvider} from "@hocuspocus/provider";
+import * as Y from "yjs";
+import Document from "@tiptap/extension-document";
+import Paragraph from "@tiptap/extension-paragraph";
+import Text from "@tiptap/extension-text";
+import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
+
+import TurndownService from 'turndown';
+const store = userStore()
 
 
 const route = useRoute()
 const router = useRouter()
+
+const doc = new Y.Doc()
+const hashcode = useRoute().params.docId;
+
+// Connect to your Collaboration server
+const provider = new TiptapCollabProvider({
+  name: hashcode, // Unique document identifier for syncing. This is your document name.
+  appId: 'j9yp3691', // Your Cloud Dashboard AppID or `baseURL` for on-premises
+  token:
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MjA4ODA0ODQsI' +
+      'm5iZiI6MTcyMDg4MDQ4NCwiZXhwIjoxNzIwOTY2ODg0LCJpc3MiOiJodHRwczo' +
+      'vL2Nsb3VkLnRpcHRhcC5kZXYiLCJhdWQiOiJqOXlwMzY5MSJ9.GM7OcUX6R3QRM' +
+      'Ed2s3tC7B8e4A8r6ocH8MWOf0cxKmg', // Your JWT token
+  document: doc,
+  // The onSynced callback ensures initial content is set only once using editor.setContent(), preventing repetitive content insertion on editor syncs.
+  onSynced() {
+    if( !doc.getMap('config').get('initialContentLoaded') && editor ){
+      doc.getMap('config').set('initialContentLoaded', true);
+
+      editor.value.commands.setContent(`
+      <p>
+        欢迎使用智能编辑器 🎉
+      </p>
+      `)
+    }
+
+  }
+})
+
+function getColorBasedOnValue(value) {
+  if (value % 5 === 0) {
+    return '#7cfa17';
+  } else if (value % 5 === 1) {
+    return '#38b7e8';
+  } else if (value % 5 === 2) {
+    return '#ff6666';
+  } else if (value % 5 === 3) {
+    return '#cc33ff';
+  } else {
+    return '#ffdf3c';
+  }
+}
+
 const editor = useEditor({
   content: ``,
   extensions: [
@@ -155,10 +261,23 @@ const editor = useEditor({
     BulletList,
     ListItem,
     CharacterCount.configure({
-      limit: 10000
+      limit: 35000
     }),
     Highlight.configure({ multicolor: true }),
     Blockquote,
+    // Document,
+    // Paragraph,
+    // Text,
+    Collaboration.configure({
+      document:doc,
+    }),
+    CollaborationCursor.configure({
+      provider: provider,
+      user: {
+        name: store.nickname,
+        color: getColorBasedOnValue(store.user_id),
+      },
+    }),
   ],
   onUpdate({ edit }) {
     loadHeadings()
@@ -171,15 +290,35 @@ const editor = useEditor({
   injectCSS: false
 })
 
+const turndownService = new TurndownService();
+const download = ()=>{
+  const blob = new Blob([turndownService.turndown(editor.value.getHTML())], {
+    type: 'text/markdown'
+  })
+  const objectURL = URL.createObjectURL(blob)
+  const aTag = document.createElement('a')
+  aTag.href = objectURL
+  aTag.download = docName.value+'.md'
+  aTag.click()
+  URL.revokeObjectURL(objectURL)
+}
+const insert=()=>{
+  editor.value.commands.insertContent('Example Text')
+}
+const undo=()=>{
+  editor.value.commands.undo()
+}
+const redo=()=>{
+  editor.value.commands.redo()
+}
+
 const loadHeadings = () => {
   const headings = []
   if (!editor.value) return
   const transaction = editor.value.state.tr
   if (!transaction) return
-
   editor.value?.state.doc.descendants((node, pos) => {
     if (node.type.name === 'heading') {
-      console.log(pos, node)
       const start = pos
       const end = pos + node.content.size
       // const end = pos + node
@@ -218,12 +357,31 @@ let teamName = ref('')
 let iconURL = ref(uStore.icon)
 let nickname = ref(uStore.nickname)
 let email = ref(uStore.email)
+const activeName = ref('fourth')
+const teamVisible = ref(false)
+let teamMemberList = ref([])
+let teamMemberLoading = ref(true)
+
+// 绑定ctrl+S
+window.addEventListener('keydown', handleSave);
+
+function handleSave(event){
+  if (event.ctrlKey && event.key === 's') {
+    event.preventDefault();
+    if(route.name=="doc"){
+      saveContent()
+    }
+  }
+}
 
 onMounted(() => {
   doc_id.value = parseInt(route.params.docId)
   docContent(doc_id.value).then((res)=>{
     docName.value = res.doc_name
-    editor.value.commands.setContent(JSON.parse(res.content), false) 
+    // if(res.content!=''){
+    //   editor.value.commands.setContent(JSON.parse(res.content), false)
+    // }
+    loadHeadings()
     team_id.value = res.team_id
     teamName.value = res.team_name
     let m1 = moment(res.update_time)
@@ -231,7 +389,15 @@ onMounted(() => {
     let duration = moment.duration(now.diff(m1))
     updateTime.value = duration.humanize()
     docLoading.value = false
+
+
+    teamMembers(team_id.value).then((res)=>{
+      teamMemberList.value = res.res
+      console.log(teamMemberList.value)
+      teamMemberLoading.value = false
+    })
   })
+
 });
 
 function logout(){
@@ -286,9 +452,20 @@ function saveContent(){
   })
 }
 
+function inviteMember(member){
+  sendDocMsg(member.user_id, team_id.value, doc_id.value).then((res)=>{
+    console.log(member.user_id)
+    ElMessage({
+      message: "已发送协作邀请！",
+      type: 'success',
+    })
+    teamVisible.value = false
+  })
+}
 
 // 在组件卸载前销毁Editor实例
 onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleSave)
   editor.value?.destroy();
 });
 
@@ -357,7 +534,6 @@ const selecttext= (e)=>{
     
     var content = selection.toString();
     if(content!=""){
-      console.log(1)
         var rect = filecont.value.getBoundingClientRect();
         visiblemenu.value = true
         // alert(e.clientY)
@@ -412,6 +588,8 @@ const hasscroll=()=>{
   width: 100%;
 }
 .righttools{
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(177deg, rgb(236, 245, 255),rgb(217, 236, 255));
   height: 100%;
   width: 100%;
@@ -467,7 +645,8 @@ const hasscroll=()=>{
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  max-height: 80vh;
+  overflow: auto;
 }
 </style>
 
@@ -475,9 +654,9 @@ const hasscroll=()=>{
 b {
   font-weight: bold;
 }
-.ProseMirror {
-  overflow-y: scroll;
-}
+// .ProseMirror {
+//   overflow-y: scroll;
+// }
 .ProseMirror p {
   margin: 0;
 }
@@ -671,5 +850,19 @@ b {
 }
 .press-divider{
 	margin: 1px;
+}
+
+.func_card{
+  margin:20px 20px 20px 0px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+.func_card:hover {
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+  cursor: pointer;
 }
 </style>

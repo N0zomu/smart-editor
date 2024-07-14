@@ -84,7 +84,7 @@
         <div class="editcont">
           <EditorContent v-loading.fullscreen.lock="docLoading"
             @scroll="hasscroll()"
-            @mousemove="mousemove()" 
+            @mousemove="mousemove()"
             @mouseup="selecttext($event)"
             style="padding: 8px;  overflow-y: auto; text-align:left"
             :editor="editor"
@@ -102,6 +102,9 @@
       <format-card></format-card>
       <visible-card></visible-card>
       <upload-card></upload-card>
+      <el-card class="func_card" @click="download">
+        <p>导出文档</p>
+      </el-card>
     </div>
   </div>
 </template>
@@ -146,11 +149,63 @@ import PolishCard from '@/components/editor/PolishCard.vue';
 import FormatCard from '@/components/editor/FormatCard.vue';
 import UploadCard from '@/components/editor/UploadCard.vue';
 import VisibleCard from '@/components/editor/VisibleCard.vue';
+import {TiptapCollabProvider} from "@hocuspocus/provider";
+import * as Y from "yjs";
+import Document from "@tiptap/extension-document";
+import Paragraph from "@tiptap/extension-paragraph";
+import Text from "@tiptap/extension-text";
+import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 
+import TurndownService from 'turndown';
+const store = userStore()
 
 
 const route = useRoute()
 const router = useRouter()
+
+const doc = new Y.Doc()
+const hashcode = useRoute().params.docId;
+
+// Connect to your Collaboration server
+const provider = new TiptapCollabProvider({
+  name: hashcode, // Unique document identifier for syncing. This is your document name.
+  appId: 'j9yp3691', // Your Cloud Dashboard AppID or `baseURL` for on-premises
+  token:
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MjA4ODA0ODQsI' +
+      'm5iZiI6MTcyMDg4MDQ4NCwiZXhwIjoxNzIwOTY2ODg0LCJpc3MiOiJodHRwczo' +
+      'vL2Nsb3VkLnRpcHRhcC5kZXYiLCJhdWQiOiJqOXlwMzY5MSJ9.GM7OcUX6R3QRM' +
+      'Ed2s3tC7B8e4A8r6ocH8MWOf0cxKmg', // Your JWT token
+  document: doc,
+  // The onSynced callback ensures initial content is set only once using editor.setContent(), preventing repetitive content insertion on editor syncs.
+  onSynced() {
+    if( !doc.getMap('config').get('initialContentLoaded') && editor ){
+      doc.getMap('config').set('initialContentLoaded', true);
+
+      editor.value.commands.setContent(`
+      <p>
+        欢迎使用智能编辑器 🎉
+      </p>
+      `)
+    }
+
+  }
+})
+
+function getColorBasedOnValue(value) {
+  if (value % 5 === 0) {
+    return '#7cfa17';
+  } else if (value % 5 === 1) {
+    return '#38b7e8';
+  } else if (value % 5 === 2) {
+    return '#ff6666';
+  } else if (value % 5 === 3) {
+    return '#cc33ff';
+  } else {
+    return '#ffdf3c';
+  }
+}
+
 const editor = useEditor({
   content: ``,
   extensions: [
@@ -164,10 +219,23 @@ const editor = useEditor({
     BulletList,
     ListItem,
     CharacterCount.configure({
-      limit: 10000
+      limit: 35000
     }),
     Highlight.configure({ multicolor: true }),
     Blockquote,
+    // Document,
+    // Paragraph,
+    // Text,
+    Collaboration.configure({
+      document:doc,
+    }),
+    CollaborationCursor.configure({
+      provider: provider,
+      user: {
+        name: store.nickname,
+        color: getColorBasedOnValue(store.user_id),
+      },
+    }),
   ],
   onUpdate({ edit }) {
     loadHeadings()
@@ -179,6 +247,28 @@ const editor = useEditor({
   },
   injectCSS: false
 })
+
+const turndownService = new TurndownService();
+const download = ()=>{
+  const blob = new Blob([turndownService.turndown(editor.value.getHTML())], {
+    type: 'text/markdown'
+  })
+  const objectURL = URL.createObjectURL(blob)
+  const aTag = document.createElement('a')
+  aTag.href = objectURL
+  aTag.download = docName.value+'.md'
+  aTag.click()
+  URL.revokeObjectURL(objectURL)
+}
+const insert=()=>{
+  editor.value.commands.insertContent('Example Text')
+}
+const undo=()=>{
+  editor.value.commands.undo()
+}
+const redo=()=>{
+  editor.value.commands.redo()
+}
 
 const loadHeadings = () => {
   const headings = []
@@ -242,9 +332,9 @@ onMounted(() => {
   doc_id.value = parseInt(route.params.docId)
   docContent(doc_id.value).then((res)=>{
     docName.value = res.doc_name
-    if(res.content!=''){
-      editor.value.commands.setContent(JSON.parse(res.content), false) 
-    }
+    // if(res.content!=''){
+    //   editor.value.commands.setContent(JSON.parse(res.content), false)
+    // }
     loadHeadings()
     team_id.value = res.team_id
     teamName.value = res.team_name
@@ -434,6 +524,8 @@ const hasscroll=()=>{
   width: 100%;
 }
 .righttools{
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(177deg, rgb(236, 245, 255),rgb(217, 236, 255));
   height: 100%;
   width: 100%;
@@ -694,5 +786,19 @@ b {
 }
 .press-divider{
 	margin: 1px;
+}
+
+.func_card{
+  margin:20px 20px 20px 0px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+.func_card:hover {
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+  cursor: pointer;
 }
 </style>

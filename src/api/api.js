@@ -5,7 +5,7 @@ export const localAddress = "http://127.0.0.1:8000/api";
 export function post(url, data) {
   return new Promise((resolve, reject) => {
     axios
-      .post(localAddress + url, data)
+      .post(serverAddress + url, data)
       .then((response) => {
         resolve(response.data);
       })
@@ -17,7 +17,7 @@ export function post(url, data) {
 export function get(url, param) {
   return new Promise((resolve, reject) => {
     axios
-      .get(localAddress + url, {
+      .get(serverAddress + url, {
         params: param,
       })
       .then((response) => {

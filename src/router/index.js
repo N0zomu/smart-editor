@@ -21,6 +21,11 @@ const routes = [
     name: 'userHome',
     component: () => import('../components/user/UserHome.vue')
   },
+  // {
+  //   path: '/test',
+  //   name: 'test',
+  //   component: () => import('../components/test.vue')
+  // },
   {
     path: '/home',
     redirect: '/home/recent',

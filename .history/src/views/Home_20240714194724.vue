@@ -6,11 +6,10 @@
 				<el-col :span="19">
 					<div class="home-header-search">
 						<el-input
-							v-model="searchInput"
+							v-model="input3"
 							style="max-width: 600px"
-							placeholder="搜索..."
+							placeholder="Please input"
 							class="input-with-select"
-							@keyup.enter="goSearch()"
 						>
 							<template #prepend>
 								<el-icon><Search /></el-icon>
@@ -35,13 +34,10 @@
 								<el-scrollbar height="400px">
 									<el-row v-for="msg in msgList0" :key="msg.msg_id" style="margin-bottom: 15px;" >
 										<el-col :span="16" >
-											<p style="float:left; font-weight:bold">{{msg.sender}}</p>
-											<p style="float:left">{{msg.ref_type=='team'?`邀请您加入`:'邀请您编辑'}}</p>
-											<p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
+											<p style="float:left; font-weight:bold">{{msg.sender}}</p> <p style="float:left">邀请您加入</p><p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
 										</el-col>
 										<el-col :span="4">
-											<el-button type="success" plain @click="enterTeam(msg.msg_id, msg.ref_id)" v-if="msg.ref_type=='team'">接受</el-button>
-											<el-button type="success" plain @click="goDoc(msg.msg_id, msg.ref_id)" v-else>接受</el-button>
+											<el-button type="success" plain @click="enterTeam(msg.msg_id, msg.ref_id)">接受</el-button>
 										</el-col>
 										<el-col :span="4">
 											<el-button type="info" plain @click="neglect(msg.msg_id)">忽略</el-button>
@@ -54,9 +50,7 @@
 								<el-scrollbar height="400px">
 									<el-row v-for="msg in msgList1" :key="msg.msg_id" style="margin-bottom: 15px;">
 										<el-col :span="20" >
-											<p style="float:left; font-weight:bold">{{msg.sender}}</p>
-											<p style="float:left">{{msg.ref_type=='team'?`邀请您加入`:'邀请您编辑'}}</p>
-											<p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
+											<p style="float:left; font-weight:bold">{{msg.sender}}</p> <p style="float:left">邀请您加入</p><p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
 										</el-col>
 										<el-col :span="4">
 											<el-button type="danger" plain @click="userDeleteMsg(msg.msg_id)">删除</el-button>
@@ -77,7 +71,7 @@
 						>
 						<template #reference>
 							<div>
-								<el-avatar :src="'http://152.136.110.235'+iconURL" :fit="fit"> user </el-avatar>
+								<el-avatar :src="'http://152.136.110.235:8000'+iconURL" :fit="fit"> user </el-avatar>
 							</div>
 						</template>
 						<template #default>
@@ -87,7 +81,7 @@
 							>
 								<el-avatar
 									:size="60"
-									:src="'http://152.136.110.235'+iconURL"
+									:src="'http://152.136.110.235:8000'+iconURL"
 									style="margin-bottom: 8px;margin-left: 50px">
 									user
 								</el-avatar>
@@ -129,11 +123,11 @@
 							</div>
 						</template>
 						<template #default>
-							<div style="text-align:center">
-								<el-button icon="Document" round style="width: 200px; height: 50px; margin:0" @click="docDialogVisible=true" text> 文档 </el-button>
-								<el-button icon="Folder" round style="width: 200px; height: 50px; margin:0" @click="folderDialogVisible=true" text>文件夹</el-button>
-								<el-button icon="User" round style="width: 200px; height: 50px; margin:0" @click="teamDialogVisible=true" text>团队空间</el-button>
-							</div>
+							<el-button icon="Document" round style="width: 200px; height: 50px" @click="docDialogVisible=true"> 文档 </el-button>
+							<el-divider/>
+							<el-button icon="Folder" round style="width: 200px; height: 50px" @click="folderDialogVisible=true">文件夹</el-button>
+							<el-divider/>
+							<el-button icon="User" round style="width: 200px; height: 50px" @click="teamDialogVisible=true">团队空间</el-button>
 						</template>
 					</el-popover>
 				<!-- <el-divider /> -->
@@ -236,8 +230,7 @@ import {all0Msg, all1Msg, handleMsg, deleteMsg} from '../api/message'
 import { ElMessage } from 'element-plus'
 import {selfInfo} from '../api/user.js'
 import {addMember, createTeam} from '../api/team'
-import {createRootDoc, createRootFolder, createFolderDoc, createFolderFolder, teamRootDoc, teamRootFolder, getFolderTeam} from '@/api/document';
-import router from '@/router/index.js'
+import {createRootDoc, createRootFolder, createFolderDoc, createFolderFolder, teamRootDoc, teamRootFolder} from '@/api/document';
 const store = userStore()
 export default {
 	data() {
@@ -259,7 +252,6 @@ export default {
 			docDialogVisible: false,
 			folderDialogVisible: false,
 			teamDialogVisible: false,
-			searchInput: '',
 			docForm: {
 				docName:""
 			},
@@ -309,77 +301,29 @@ export default {
     }
   },
 	methods: {
-		goSearch(){
-			if(this.searchInput!='')
-				this.$router.push(`/home/search?key=${this.searchInput}`)
-		},
 		menuCreateDoc(){
 			var flag = this.$route.name
 			if(flag=='space'){
 				var team_id = this.$route.path.split('/').at(-1)
 				teamRootDoc(this.docForm.docName, team_id).then((res=>{
-					this.docDialogVisible = false
 					location.reload()
 				}))
 			}
 			else if(flag=='folder'){
 				var folder_id = this.$route.path.split('/').at(-1)
-				getFolderTeam(folder_id).then((res=>{
-					createFolderDoc(this.docForm.docName, folder_id, 
-					res.in_team, res.team_id).then((res2=>{
-						this.docDialogVisible = false
-						location.reload()
-					}))
-				}))
+				createFolderDoc()
 			}
 			else{
-				createRootDoc(this.docForm.docName).then((res=>{
-					this.docDialogVisible = false
-					this.$router.push('/home/desktop')
-					if(flag=='desktop'){
-						location.reload()
-					}
-				}))
+
 			}
 		},
 		menuCreateFolder(){
 			var flag = this.$route.name
-			if(flag=='space'){
-				var team_id = this.$route.path.split('/').at(-1)
-				teamRootFolder(this.folderForm.folderName, team_id).then((res=>{
-					this.folderDialogVisible = false
-					location.reload()
-				}))
-			}
-			else if(flag=='folder'){
-				var folder_id = this.$route.path.split('/').at(-1)
-				getFolderTeam(folder_id).then((res=>{
-					createFolderFolder(this.folderForm.folderName, folder_id, 
-					res.in_team, res.team_id).then((res2=>{
-						this.folderDialogVisible = false
-						location.reload()
-					}))
-				}))
-			}
-			else{
-				createRootFolder(this.folderForm.folderName).then((res=>{
-					this.folderDialogVisible = false
-					this.$router.push('/home/desktop')
-					if(flag=='desktop'){
-						location.reload()
-					}
-				}))
-			}
+			console.log(this.$route.name)
 		},
 		menuCreateSpace(){
 			var flag = this.$route.name
-			createTeam(this.teamForm.teamName).then((res=>{
-				this.teamDialogVisible=false
-				this.$router.push('/home/group')
-				if(flag=='group'){
-					location.reload()
-				}
-			}))
+			console.log(this.$route.name)
 		},
 		saveNavState(path) {
       this.activePath = path
@@ -419,17 +363,6 @@ export default {
 				})
 			}))
 			addMember(team_id, store.user_id)
-			for(var i in this.msgList0){
-				if(this.msgList0[i].msg_id==msg_id){
-					this.msgList1.push(this.msgList0[i])
-					this.msgList0.splice(i, 1)
-					break
-				}
-			}
-		},
-		goDoc(msg_id, doc_id){
-			handleMsg(msg_id)
-			router.push(`/doc/${doc_id}`)
 			for(var i in this.msgList0){
 				if(this.msgList0[i].msg_id==msg_id){
 					this.msgList1.push(this.msgList0[i])

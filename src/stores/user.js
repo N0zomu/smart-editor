@@ -8,7 +8,7 @@ import { defineStore } from 'pinia'
       email: "",
       icon: "",
       isVIP: false,
-      token: ""
+      token: "",
     }
   },
   actions: {

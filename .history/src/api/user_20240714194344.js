@@ -20,6 +20,7 @@ export function selfInfo(){
   return get("/user/selfInfo",param);
 }
 
+<<<<<<< HEAD
 export function selfAva() {
   let param={};
   return get("/user/icon",param);
@@ -44,11 +45,11 @@ export function uploadAvatar(image){
   data.append("icon", image.raw);
   // data.append("icon", image.raw);
   return post("/user/changeIcon", data);
-}
-
+=======
 export function searchUser(email, team_id){
   let data={};
   data.email=email;
   data.team_id=team_id;
   return post("/user/searchEmail",data);
+>>>>>>> 2d3e733277d51e7dde55911079ceea6763715805
 }

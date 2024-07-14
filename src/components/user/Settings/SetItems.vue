@@ -55,11 +55,19 @@
                 </el-tooltip>
 
             </p>
+
         </el-card>
         <el-card class="card_ST" shadow="never">
             <p class="card_p_ST">
                 <div class="card_title_ava_ST">头像</div>
-                <el-avatar :size="65" style="font-size: 20px">{{ userName.slice(-2) }}</el-avatar>
+                <el-upload
+                        :show-file-list="false"
+                        :auto-upload="false"
+                        :on-change="updateAVA"
+                        :limit="1"
+                        accept=".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.WMF,.webp,.avif,.apng">
+                    <el-avatar :size="65" style="font-size: 20px" :src="store.$state.icon">{{ store.$state.nickname.slice(-2) }}</el-avatar>
+                </el-upload>
             </p>
             <div class="card_n_ST"></div>
             <p class="card_p_ST">
@@ -71,7 +79,7 @@
                 >
 
                 </el-input>
-                <div v-else class="card_content_ST">{{ userName }}</div>
+                <div v-else class="card_content_ST">{{ store.$state.nickname }}</div>
                 <div class="card_button_ST" v-if="showInput">
                     <el-button
                             class="card_button_ST"
@@ -117,7 +125,7 @@
             <div class="card_n_ST"></div>
             <p class="card_p_ST">
                 <div class="card_title_ST">邮箱</div>
-                <div class="card_content_ST">{{ userEmail }}</div>
+                <div class="card_content_ST">{{ store.$state.email }}</div>
 <!--                <el-button-->
 <!--                        class="card_button_ST"-->
 <!--                        :key="button.text"-->
@@ -133,11 +141,15 @@
 
 <script>
 import {onMounted, ref} from "vue";
+import {userStore} from "@/stores/user";
+import {selfAva, selfInfo, updateNickName, updatePassword, uploadAvatar} from "@/api/user";
+import {ElMessage} from "element-plus";
 
 export default {
     name: "SetItems",
 
     setup() {
+        const store = userStore();
         let userName = ref("星空下的暴走奶昔");
         let userEmail = ref("I'mGoingTo@Drink.Milkshake");
         const button = { type: 'primary', text: 'primary' };
@@ -149,7 +161,22 @@ export default {
         let cPWD = ref("");
 
         const updateNick = () => {
-            // TODO: update userName with userName
+            var promise = updateNickName(userName.value);
+            promise.then((result => {
+                if(result.code === 0){
+                    ElMessage({
+                        message: result.error,
+                        type: 'warning',
+                    });
+                }
+                else {
+                    ElMessage({
+                        message: result.message,
+                        type: 'success',
+                    });
+                    store.$state.nickname = userName.value;
+                }
+            }))
             console.log(userName);
             showInput.value = false;
         }
@@ -160,9 +187,21 @@ export default {
         }
 
         const updatePWD = () => {
-            // TODO: check if oldPWD is correct
-            // TODO: check if newPWD equals cPWD
-            // TODO: update PWD
+            var promise = updatePassword(oldPWD, newPWD, cPWD);
+            promise.then((result => {
+                if(result.code === 0){
+                    // ElMessage({
+                    //     message: result.error,
+                    //     type: 'warning',
+                    // });
+                }
+                else {
+                    // ElMessage({
+                    //     message: result.message,
+                    //     type: 'success',
+                    // });
+                }
+            }))
             clearPWDdialog();
         }
 
@@ -182,7 +221,53 @@ export default {
         }
 
         const getUserInfo = () => {
-            // TODO: get user info
+            var promise = selfInfo();
+            promise.then((result => {
+                if(result.code === 0){
+                    // ElMessage({
+                    //     message: result.error,
+                    //     type: 'warning',
+                    // });
+                }
+                else {
+                    // ElMessage({
+                    //     message: result.message,
+                    //     type: 'success',
+                    // });
+                    store.$state.nickname = result.nickname;
+                    store.$state.email = result.email;
+                }
+            }))
+            var getAva = selfAva();
+            getAva.then((result2 => {
+                if(result2.code === 0){
+                }
+                else {
+                    store.$state.icon = result2.icon_url;
+                    console.log("##" + store.$state.icon)
+                }
+            }))
+        }
+
+        const updateAVA = (file, fileList) => {
+            if (file && file.raw) {
+                let promise = uploadAvatar(file);
+                promise.then((result) => {
+                    if(result.code === 0){
+                        ElMessage({
+                            message: "头像已更新",
+                            type: "success",
+                        });
+                    }
+                    getUserInfo();
+                })
+            }
+            else {
+                // ElMessage({
+                //     message: "上传失败，请重试",
+                //     type: "error",
+                // });
+            }
         }
 
         onMounted(() => {
@@ -199,11 +284,13 @@ export default {
             oldPWD,
             newPWD,
             cPWD,
+            store,
             updateNick,
             cancelNick,
             updatePWD,
             canclePWD,
             upgrade,
+            updateAVA
         }
     }
 }

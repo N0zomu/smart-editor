@@ -1,15 +1,16 @@
 <template>
     <div class="body_pageList">
         <el-card class="info_PL">
-            <el-avatar shape='circle' :size="70" style="font-size: 22px">{{ userName.slice(-2) }}</el-avatar>
+            <el-avatar shape='circle' :size="70" style="font-size: 22px" :src="store.$state.icon">{{ store.$state.nickname.slice(-2) }}</el-avatar>
+<!--            <el-avatar shape='circle' :size="70" style="font-size: 22px">{{ store.$state.ava }}</el-avatar>-->
 <!--            <el-avatar shape='circle' :size="70" style="font-size: 22px; background-color: rgba(168,23,23,0.88)">-->
 <!--                {{ userName.slice(-2) }}-->
 <!--            </el-avatar>-->
             <el-divider>
                 <el-icon><star-filled color="#C0C4CC"/></el-icon>
             </el-divider>
-            <p style="font-size: 18px; margin-bottom: 4px; font-weight: 400">{{ userName }}</p>
-            <p style="font-size: 12px; color: #a0a5a8">{{ userEmail }}</p>
+            <p style="font-size: 18px; margin-bottom: 4px; font-weight: 400">{{ store.$state.nickname }}</p>
+            <p style="font-size: 12px; color: #a0a5a8">{{ store.$state.email }}</p>
         </el-card>
 <!--        <el-card class="calendar_PL">-->
 <!--            <el-calendar v-model="value" style="justify-content: center; align-items: center;"/>-->
@@ -19,22 +20,69 @@
 </template>
 
 <script>
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
+import {userStore} from "@/stores/user";
+import {selfAva, selfInfo} from "@/api/user";
+import {ElMessage} from "element-plus";
 
 export default {
     name: "PageList",
 
     setup() {
+        const store = userStore()
         let url_avatar = ref();
         let userName = ref("星空下的暴走奶昔");
         let userEmail = ref("I'mGoingTo@Drink.Milkshake");
         let value = ref(new Date());
+        // let ava = ref("");
+
+        const getUserInfo = () => {
+            var promise = selfInfo();
+            promise.then((result => {
+                if(result.code === 0){
+                    // ElMessage({
+                    //     message: result.error,
+                    //     type: 'warning',
+                    // });
+                }
+                else {
+                    // ElMessage({
+                    //     message: result.message,
+                    //     type: 'success',
+                    // });
+                    store.$state.nickname = result.nickname;
+                    store.$state.email = result.email;
+                }
+            }))
+            var getAva = selfAva();
+            getAva.then((result2 => {
+                if(result2.code === 0){
+                    // ElMessage({
+                    //     message: result2.error,
+                    //     type: 'warning',
+                    // });
+                }
+                else {
+                    // ElMessage({
+                    //     message: result2.msg,
+                    //     type: 'success',
+                    // });
+                    store.$state.icon = result2.icon_url;
+                }
+            }))
+        }
+
+        onMounted(() => {
+            getUserInfo();
+            console.log("ava:" + store.$state.ava)
+        })
 
         return {
             url_avatar,
             userName,
             userEmail,
-            value
+            value,
+            store
         }
     }
 }

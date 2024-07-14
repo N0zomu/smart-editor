@@ -61,7 +61,7 @@
 									</p>
 								</div>
 								<el-divider class="press-divider"/>
-								<el-link :underline="false">个人主页</el-link>
+								<el-link :underline="false" @click="toUser">个人主页</el-link>
            			<el-divider class="press-divider"/>
 								<el-link :underline="false" type="danger" @click="logout">退出登录</el-link>
 							</div>
@@ -203,6 +203,9 @@ export default {
 				type: 'success',
 			})
 			this.$router.push({ path: "/login" })
+		},
+		toUser() {
+			this.$router.push({ path: "/user" })
 		}
 	}
 }

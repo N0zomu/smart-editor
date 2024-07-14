@@ -1,5 +1,5 @@
 import axios from "axios";
-export const serverAddress = "http://152.136.110.235:8000";
+export const serverAddress = "http://152.136.110.235/api";
 
 export function post(url, data) {
   return new Promise((resolve, reject) => {

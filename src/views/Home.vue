@@ -35,10 +35,13 @@
 								<el-scrollbar height="400px">
 									<el-row v-for="msg in msgList0" :key="msg.msg_id" style="margin-bottom: 15px;" >
 										<el-col :span="16" >
-											<p style="float:left; font-weight:bold">{{msg.sender}}</p> <p style="float:left">邀请您加入</p><p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
+											<p style="float:left; font-weight:bold">{{msg.sender}}</p>
+											<p style="float:left">{{msg.ref_type=='team'?`邀请您加入`:'邀请您编辑'}}</p>
+											<p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
 										</el-col>
 										<el-col :span="4">
-											<el-button type="success" plain @click="enterTeam(msg.msg_id, msg.ref_id)">接受</el-button>
+											<el-button type="success" plain @click="enterTeam(msg.msg_id, msg.ref_id)" v-if="msg.ref_type=='team'">接受</el-button>
+											<el-button type="success" plain @click="goDoc(msg.msg_id, msg.ref_id)" v-else>接受</el-button>
 										</el-col>
 										<el-col :span="4">
 											<el-button type="info" plain @click="neglect(msg.msg_id)">忽略</el-button>
@@ -51,7 +54,9 @@
 								<el-scrollbar height="400px">
 									<el-row v-for="msg in msgList1" :key="msg.msg_id" style="margin-bottom: 15px;">
 										<el-col :span="20" >
-											<p style="float:left; font-weight:bold">{{msg.sender}}</p> <p style="float:left">邀请您加入</p><p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
+											<p style="float:left; font-weight:bold">{{msg.sender}}</p>
+											<p style="float:left">{{msg.ref_type=='team'?`邀请您加入`:'邀请您编辑'}}</p>
+											<p style="float:left; font-weight:bold">{{msg.ref_name}}</p>
 										</el-col>
 										<el-col :span="4">
 											<el-button type="danger" plain @click="userDeleteMsg(msg.msg_id)">删除</el-button>
@@ -232,6 +237,7 @@ import { ElMessage } from 'element-plus'
 import {selfInfo} from '../api/user.js'
 import {addMember, createTeam} from '../api/team'
 import {createRootDoc, createRootFolder, createFolderDoc, createFolderFolder, teamRootDoc, teamRootFolder, getFolderTeam} from '@/api/document';
+import router from '@/router/index.js'
 const store = userStore()
 export default {
 	data() {
@@ -410,6 +416,17 @@ export default {
 				})
 			}))
 			addMember(team_id, store.user_id)
+			for(var i in this.msgList0){
+				if(this.msgList0[i].msg_id==msg_id){
+					this.msgList1.push(this.msgList0[i])
+					this.msgList0.splice(i, 1)
+					break
+				}
+			}
+		},
+		goDoc(msg_id, doc_id){
+			handleMsg(msg_id)
+			router.push(`/doc/${doc_id}`)
 			for(var i in this.msgList0){
 				if(this.msgList0[i].msg_id==msg_id){
 					this.msgList1.push(this.msgList0[i])

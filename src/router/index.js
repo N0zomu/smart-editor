@@ -74,6 +74,11 @@ const routes = [
     name: 'doc',
     component: () => import('../views/DocEditView.vue'),
   },
+  {
+    path: '/map',
+    name: 'map',
+    component: () => import('../components/editor/MindMap.vue'),
+  },
 ]
 
 const router = createRouter({

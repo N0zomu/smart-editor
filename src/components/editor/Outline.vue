@@ -17,7 +17,7 @@ const handleHeadingClick = (data) => {
 <template>
   <el-scrollbar height="90vh">
     <div class="outline__list" style="display: flex; flex-direction: column;">
-      <el-text class="text-gray-400" style="margin-top:20px;font-size:20px" tag="b">大纲</el-text>
+      <el-text  class="text-gray-400" style="margin-top:20px;font-size:20px" tag="b">大纲</el-text>
       <el-divider style="margin: 2px; width:99%"></el-divider>
       <template v-for="(heading, index) in headings" :key="index">
         <!-- <el-popover
@@ -42,7 +42,7 @@ const handleHeadingClick = (data) => {
           class="outline__item"
           :class="`outline__item--${heading.level}`"
         >
-          {{ heading.text }}
+          <el-text style="max-width: 20vh" truncated>{{ heading.text }}</el-text>
           <el-icon v-if="heading.icon"><component :is="heading.icon"/></el-icon>
         </el-button>
       </template>
@@ -56,6 +56,7 @@ const handleHeadingClick = (data) => {
   border-radius: 0.5rem;
   padding: 0.75rem;
   background: rgba(black, 0.1);
+  
 
   &__list {
     list-style: none;
@@ -64,6 +65,8 @@ const handleHeadingClick = (data) => {
   }
 
   &__item {
+    max-width: 20vw;
+    text-overflow: ellipsis;
     a:hover {
       opacity: 0.5;
     }

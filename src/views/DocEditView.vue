@@ -18,7 +18,7 @@
           content="与团队协作"
           placement="bottom"
           >
-            <el-button type="primary" icon="User" style="margin-right:10px;margin-top:10px" v-if="team_id!=0">{{teamName}}</el-button>
+            <el-button type="primary" icon="User" style="margin-right:10px;margin-top:10px" v-if="team_id!=0" @click="teamVisible=true">{{teamName}}</el-button>
           </el-tooltip>
           <el-popover
             placement="bottom"
@@ -98,12 +98,54 @@
     </div>
     
     <div class="righttools">
-      <polish-card></polish-card>
-      <format-card></format-card>
-      <visible-card></visible-card>
-      <upload-card></upload-card>
+      <el-tabs style="margin-top:20px" v-model="activeName">
+        <el-tab-pane name="first">
+          <template #label>
+            <span class="custom-tabs-label">
+              <el-icon><calendar /></el-icon>
+              <span>Route</span>
+            </span>
+          </template>
+          <polish-card></polish-card>
+        </el-tab-pane >
+        <el-tab-pane label="Config" name="second">
+          <format-card></format-card>
+        </el-tab-pane>
+        <el-tab-pane label="Role" name="third">
+          <visible-card></visible-card>
+        </el-tab-pane>
+        <el-tab-pane label="Task" name="fourth">
+          <upload-card></upload-card>
+        </el-tab-pane>
+      </el-tabs>
+      
+      
+      
     </div>
   </div>
+
+  <el-dialog v-model="teamVisible" title="团队协作" width="500">
+    <el-scrollbar height="400px" v-loading = "teamMemberLoading">
+      <el-row style="margin-top:10%;margin-bottom:10%;cursor:pointer" v-for="member in teamMemberList" :key="member.user_id" 
+      v-show="member.user_id!=uStore.user_id" @click="inviteMember(member)">
+        <el-col :span="4">
+          <el-avatar
+            :size="50"
+            :src="'http://152.136.110.235'+member.icon"
+          >
+            user
+          </el-avatar>
+        </el-col>
+        <el-col :span="20">
+          <div style="margin-top: 10px;text-align:left">
+            <p style="margin: 0; font-weight: bold">{{member.nickname}}</p>
+            <p style="margin: 0; font-size: 14px; color: var(--el-color-info)">{{member.email}}</p>
+          </div>
+        </el-col>
+      </el-row>
+      
+    </el-scrollbar>
+  </el-dialog>
 </template>
 
 
@@ -141,6 +183,8 @@ import Outline from '@/components/editor/Outline.vue'
 import { ElMessage } from 'element-plus'
 import {docContent, updateDoc} from '@/api/document';
 import moment from 'moment';
+import {teamMembers} from '@/api/team';
+import {sendDocMsg} from '@/api/message';
 
 import PolishCard from '@/components/editor/PolishCard.vue';
 import FormatCard from '@/components/editor/FormatCard.vue';
@@ -225,6 +269,10 @@ let teamName = ref('')
 let iconURL = ref(uStore.icon)
 let nickname = ref(uStore.nickname)
 let email = ref(uStore.email)
+const activeName = ref('fourth')
+const teamVisible = ref(false)
+let teamMemberList = ref([])
+let teamMemberLoading = ref(true)
 
 // 绑定ctrl+S
 window.addEventListener('keydown', handleSave);
@@ -253,7 +301,15 @@ onMounted(() => {
     let duration = moment.duration(now.diff(m1))
     updateTime.value = duration.humanize()
     docLoading.value = false
+
+
+    teamMembers(team_id.value).then((res)=>{
+      teamMemberList.value = res.res
+      console.log(teamMemberList.value)
+      teamMemberLoading.value = false
+    })
   })
+
 });
 
 function logout(){
@@ -308,6 +364,16 @@ function saveContent(){
   })
 }
 
+function inviteMember(member){
+  sendDocMsg(member.user_id, team_id.value, doc_id.value).then((res)=>{
+    console.log(member.user_id)
+    ElMessage({
+      message: "已发送协作邀请！",
+      type: 'success',
+    })
+    teamVisible.value = false
+  })
+}
 
 // 在组件卸载前销毁Editor实例
 onBeforeUnmount(() => {

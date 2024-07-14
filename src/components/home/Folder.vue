@@ -1,69 +1,16 @@
 <template>
-  <el-container class="desktop-layout" v-loading="docLoading">
+  <el-container class="desktop-layout">
     <el-header class="desktop-header" style="white-space: nowrap;">
       <el-row :gutter="20">
         <el-col :span="18" style="text-align: left">
-          <el-text size="large" style="font-size: 20px; font-weight:bold; White-space:nowrap; margin-right:10px">{{team_name}}</el-text>
-          <el-popover
-						:width="300"
-						popper-style="box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;"
-						trigger="click" v-if="!docLoading"
-						>
-						<template #reference>
-							<el-icon style="cursor: pointer;" @click="getTeamMembers"><UserFilled /></el-icon>
-						</template>
-						<template #default>
-              <el-text size="large" tag="b">创建者</el-text>
-              <el-divider style="margin: 1px;"/> 
-              <el-row style="margin-top:10%;margin-bottom:10%">
-                <el-col :span="4">
-                  <el-avatar
-                    :size="50"
-                    :src="'http://152.136.110.235:8000'+team_creator.icon"
-                  >
-                    user
-                  </el-avatar>
-                </el-col>
-                <el-col :span="20">
-                  <div style="margin-top: 5%; margin-left: 10%">
-                    <p style="margin: 0; font-weight: bold">{{team_creator.nickname}}</p>
-                    <p style="margin: 0; font-size: 14px; color: var(--el-color-info)">{{team_creator.email}}</p>
-                  </div>
-                </el-col>
-              </el-row>
-              
-              <el-row>
-                <el-col :span="22">
-                  <el-text size="large" tag="b">团队成员</el-text>
-                </el-col>
-                <el-col :span="2">
-                  <el-icon style="cursor: pointer;" @click="addMemberVisible=true;" v-if="store.user_id==team_creator.user_id"><CirclePlus /></el-icon>
-                </el-col>
-              </el-row>              
-              <el-divider style="margin: 1px;"/> 
-              <el-scrollbar height="400px"  v-loading="teamMemberLoading">
-                <el-row style="margin-top:10%;margin-bottom:10%" v-for="member in memberList" :key="member.user_id">
-                  <el-col :span="4">
-                    <el-avatar
-                      :size="50"
-                      :src="'http://152.136.110.235:8000'+member.icon"
-                    >
-                      user
-                    </el-avatar>
-                  </el-col>
-                  <el-col :span="14">
-                    <div style="margin-top: 5%; margin-left: 10%">
-                      <p style="margin: 0; font-weight: bold">{{member.nickname}}</p>
-                      <p style="margin: 0; font-size: 14px; color: var(--el-color-info)">{{member.email}}</p>
-                    </div>
-                  </el-col>
-                  <el-col :span="6">
-                    <el-button type="danger" icon="Delete" style="margin-top: 20%;" v-if="store.user_id==team_creator.user_id" @click="userQuitMember(member.user_id)"/>
-                  </el-col>
-                </el-row>
-              </el-scrollbar>
-						</template>
-					</el-popover>
+          <el-breadcrumb separator="/" v-loading.fullscreen.lock="docLoading">
+            <el-breadcrumb-item :to="{ path: '/home/desktop' }" v-if="team_id==0">我的桌面</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: `/home/space/${team_id}` }" v-else>{{team_name}}</el-breadcrumb-item>
+            <el-breadcrumb-item v-for="(item) in pathTable" :key="item.id">
+              <a :href="`/home/folder/${item.id}`">{{item.name}}</a>
+            </el-breadcrumb-item>
+            <el-breadcrumb-item>{{folder_name}}</el-breadcrumb-item>
+          </el-breadcrumb>
         </el-col>
         <el-col :span="6">
           <el-row>
@@ -113,7 +60,7 @@
     </el-header>
     <el-divider style="margin: 1px;"/>
     <el-main class="desktop-main">
-      <el-table :data="docTable" style="width: 100%" v-loading="docLoading" @selection-change="handleSelectionChange">
+      <el-table :data="docTable" style="width: 100%" v-loading.fullscreen.lock="docLoading" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column label="文件名" width="180">
           <template #default="scope">
@@ -181,7 +128,7 @@
     </template>
   </el-dialog>
   <el-dialog :model-value="moveDialogVisible" title="移动" width="500">
-    <doc-tree @message-to-parent="receiveMessageFromChild" :is_team=true :team_id=team_id :team_name=team_name></doc-tree>
+    <doc-tree @message-to-parent="receiveMessageFromChild" :is_team=is_in_team :team_id=team_id :team_name=team_name></doc-tree>
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="moveDialogVisible = false">Cancel</el-button>
@@ -191,98 +138,48 @@
       </div>
     </template>
   </el-dialog>
-
-  <el-dialog :model-value="addMemberVisible" title="添加团队成员" width="500" :before-close="handleClickX">
-    <el-input
-      v-model="searchKey"
-      style=""
-      ref="searchInputRef"
-      placeholder="使用邮箱搜索想添加的成员，确保输入准确的邮箱"
-    >
-      <template #append>
-        <el-button icon="Search" @click="userSearchUser"/>
-      </template>
-    </el-input>
-    <el-card style="max-width: 480px;margin-top: 5%;margin-bottom:5%" shadow="never" v-loading="searchLoading">
-      <p v-if="searchResultUser.id==null">无数据</p>
-      <el-row v-else>
-        <el-col :span="4">
-          <el-avatar
-            :size="50"
-            :src="'http://152.136.110.235:8000'+searchResultUser.icon"
-          >
-            user
-          </el-avatar>
-        </el-col>
-        <el-col :span="16" style="display:flex">
-          <div style="align-self: center;margin-left:30%">
-            <p style="margin: 0; font-weight: bold">{{searchResultUser.nickname}}</p>
-            <p style="margin: 0; font-size: 14px; color: var(--el-color-info)">{{searchResultUser.email}}</p>
-          </div>
-        </el-col>
-        <el-col :span="4" style="display:flex">
-          <el-button type="info" plain disabled style="align-self: center;" v-if="searchResultUser.has_in_team">已加入</el-button>
-          <el-button type="info" plain disabled style="align-self: center;" v-else-if="searchResultUser.has_send">等待接受</el-button>
-          <el-button type="primary" style="align-self: center;" v-else @click="userAddMember">添加</el-button>
-        </el-col>
-      </el-row>
-    </el-card>
-  </el-dialog>
 </template>
 
 <script setup>
-import { userStore } from '../../stores/user'
 import {ref, reactive, onMounted, toRaw} from 'vue'
-import {allTeamRootDoc, deleteDoc, collectDoc, cancelCollect, allCollect, teamRootDoc, teamRootFolder, moveDoc} from "../../api/document.js"
-import {teamInfo, teamMembers, quitMember} from '../../api/team'
-import {searchUser} from '../../api/user';
-import {sendTeamMsg} from '../../api/message';
+import {folderDoc, deleteDoc, collectDoc, cancelCollect, allCollect, createFolderDoc, createFolderFolder,
+  getPath, moveDoc} from "../../api/document.js"
+import {teamInfo} from '../../api/team'
+
 import moment from 'moment'
-import { ElMessage, ElNotification, ElMessageBox } from 'element-plus';
-import {useRoute} from 'vue-router'
+import { ElMessage, ElNotification } from 'element-plus';
+import {useRoute} from 'vue-router';
 import DocTree from '../DocTree';
-import { useRouter } from "vue-router";
-const router = useRouter()
 const route = useRoute()
-const store = userStore()
-let team_id = ref(0)
-let team_name = ref('')
-let team_creator = ref('')
+let folder_id = ref(0)
+let folder_name = ref('')
 let moveDialogVisible = ref(false)
-let addMemberVisible = ref(false)
-let memberList = reactive([])
-let teamMemberLoading = ref(false)
+let team_id = ref(0)
+let is_in_team = ref(false)
+let team_name = ref('')
 
 let dst_doc = ref(0)
 function receiveMessageFromChild(message){
   dst_doc.value = message
 }
+
 onMounted(() => {
-  team_id.value = parseInt(route.params.teamId)
-  var promise = teamInfo(team_id.value)
-  promise.then((res =>{
-    team_name.value = res.team_name
-    var promise2 = teamMembers(team_id.value)
-    promise2.then((res =>{
-      if(res.code==0){
-        ElMessageBox.alert('This is a message', 'Title', {
-        confirmButtonText: 'OK',
-        callback: () => {
-          router.go(-1)
-        },
-      })
-      }else{
-        for(var m of res.res){
-          if(m.perm===1){
-            team_creator = m
-          }else{
-            memberList.push(m)
-          }
-          teamMemberLoading.value = false
-          getRootDoc()
-        }
-      }
+  folder_id.value = route.params.docId
+  var promise = folderDoc(folder_id.value)
+  promise.then((res => {
+    docTable = res.res
+    team_id.value = res.team_id
+    is_in_team.value = res.is_team
+    docTable.sort(function(a, b){
+      if(a.is_folder<=b.is_folder) return 1
+      else return -1
+    })
+    docCount.value = res.count
+    var promise = teamInfo(team_id.value)
+    promise.then((res =>{
+      team_name.value = res.team_name
     }))
+    getSelfPath()
   }))
 });
 
@@ -298,21 +195,12 @@ let folderForm = reactive({
       })
 
 let docTable = reactive([])
+let pathTable = reactive([])
 let collectTable = reactive([])
 let docCount = ref(0)
 let docLoading = ref(true)
-let searchLoading = ref(false)
 
 let selectDoc = reactive([])
-
-let searchKey = ref('')
-let searchResultUser = reactive({})
-
-function handleClickX(){
-  addMemberVisible.value = false
-  searchKey.value = ''
-  searchResultUser = {}
-}
 
 function handleSelectionChange(val){
   selectDoc = []
@@ -330,7 +218,7 @@ function formatDate2(row, column){
 }
 
 function userCreateDoc(){
-  var promise = teamRootDoc(docForm.docName, team_id.value)
+  var promise = createFolderDoc(docForm.docName, folder_id.value, is_in_team.value, team_id.value)
   promise.then((res => {
     if(res.code==1){
       ElMessage({
@@ -338,7 +226,7 @@ function userCreateDoc(){
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }else{
       ElMessage.error(res.message)
     }
@@ -347,7 +235,7 @@ function userCreateDoc(){
 }
 
 function userCreateFolder(){
-  var promise = teamRootFolder(folderForm.folderName, team_id.value)
+  var promise = createFolderFolder(folderForm.folderName, folder_id.value, is_in_team.value, team_id.value)
   promise.then((res => {
     if(res.code==1){
       ElMessage({
@@ -355,7 +243,7 @@ function userCreateFolder(){
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }else{
       ElMessage.error(res.message)
     }
@@ -363,8 +251,8 @@ function userCreateFolder(){
   folderDialogVisible.value = false
 }
 
-function getRootDoc(){
-  var promise = allTeamRootDoc(team_id.value)
+function getFolderDoc(){
+  var promise = folderDoc(folder_id.value)
   promise.then((res => {
     docTable = res.res
     docTable.sort(function(a, b){
@@ -372,6 +260,15 @@ function getRootDoc(){
       else return -1
     })
     docCount.value = res.count
+    docLoading.value = false
+  }))
+}
+function getSelfPath(){
+  var promise = getPath(folder_id.value)
+  promise.then((res => {
+    pathTable = res.res
+    var selfFolder = pathTable.pop()
+    folder_name.value = selfFolder.name
     docLoading.value = false
   }))
 }
@@ -406,9 +303,9 @@ function deleteDF(row){
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }else{
-      ElMessage.error('Oops, this is a error message.')
+      ElMessage.error(res.message)
     }
   }))
 }
@@ -425,12 +322,13 @@ function deleteAll(){
       allAPI.push(deleteDoc(selectDoc[d].doc_id, selectDoc[d].is_folder))
     }
     Promise.all(allAPI).then((res =>{
+      console.log(res)
       ElMessage({
         message: "删除成功！",
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }))
   }
 }
@@ -451,67 +349,15 @@ function moveDocs(){
       allAPI.push(moveDoc(d.doc_id, dst_doc.value))
     }
     Promise.all(allAPI).then((res =>{
+      console.log(res)
       ElMessage({
         message: "移动成功！",
         type: 'success',
       })
       docLoading.value = true
-      getRootDoc()
+      getFolderDoc()
     }))
   moveDialogVisible.value = false
-}
-
-function getTeamMembers(){
-  memberList.splice(0, memberList.length)
-  teamMemberLoading.value = true
-  var promise = teamMembers(team_id.value)
-  promise.then((res =>{
-    for(var m of res.res){
-      if(m.perm===1){
-        team_creator = m
-      }else{
-        memberList.push(m)
-      }
-    }
-    teamMemberLoading.value = false
-  }))
-}
-
-function userSearchUser(){
-  searchLoading.value = true
-  var promise = searchUser(searchKey.value, team_id.value)
-  promise.then((res =>{
-    searchResultUser = res
-    searchLoading.value = false
-  }))
-}
-
-function userAddMember(){
-  var promise = sendTeamMsg(searchResultUser.id, team_id.value)
-  promise.then((res =>{
-    console.log(res)
-    ElMessage({
-      message: "已发送邀请信息！",
-      type: 'success',
-    })
-  }))
-  addMemberVisible.value = false
-}
-
-function userQuitMember(user_id){
-  var promise = quitMember(team_id.value, user_id)
-  promise.then((res =>{
-    ElMessage({
-      message: "成功删除此成员！",
-      type: 'success',
-    })
-  }))
-  for(var i in memberList){
-    if(memberList[i].user_id==user_id){
-      memberList.splice(i, 1)
-      break
-    }
-  }
 }
 </script>
 
@@ -530,13 +376,10 @@ function userQuitMember(user_id){
   .desktop-main{
     height: 95%;
   }
+  .el-breadcrumb  /deep/  .el-breadcrumb__inner 
+      {
+        font-size: 20px !important;				//你想要设置的字体颜色
+    }
+
 }
 </style>
-
-
-<!-- import {useRoute} from 'vue-router'
-const route = useRoute()
-let team_id = ref(0)
-onMounted(() => {
-  team_id.value = route.params.teamId
-}); -->

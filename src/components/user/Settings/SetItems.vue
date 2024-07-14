@@ -236,6 +236,7 @@ export default {
                     // });
                     store.$state.nickname = result.nickname;
                     store.$state.email = result.email;
+                    userName.value = result.nickname;
                 }
             }))
             var getAva = selfAva();

@@ -336,9 +336,10 @@ export default {
 			})
 			this.$router.push({ path: "/login" })
 		},
+<<<<<<< HEAD
 		toUser() {
 			this.$router.push({ path: "/user" })
-		},
+=======
 		getAllMsg(){
 			this.msgListLoading=true
 			var APIList = [all0Msg(), all1Msg()]
@@ -401,6 +402,7 @@ export default {
 					break
 				}
 			}
+>>>>>>> 2d3e733277d51e7dde55911079ceea6763715805
 		}
 	}
 }

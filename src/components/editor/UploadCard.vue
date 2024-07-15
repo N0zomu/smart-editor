@@ -16,15 +16,15 @@
       <el-button type="primary">Click to upload</el-button>
       <template #tip>
         <div class="el-upload__tip">
-          可上传图片，音频，以及pdf格式的文件
+          可上传图片与pdf格式的文件
         </div>
       </template>
     </el-upload>
   </el-card>
-  <el-card style="margin:10px 10px 10px 0" v-if="previewVisible">
+  <el-card style="margin:10px 10px 10px 0;" v-if="previewVisible" v-loading="aiLoading">
     <el-image v-if="previewFile.type=='img'"
-      style="width: 100px; height: 100px"
-      :src="localAddress + url"
+      style="width: 80px; height: 80px"
+      :src="serverAddress + url"
       :zoom-rate="1.2"
       :max-scale="7"
       :min-scale="0.2"
@@ -34,10 +34,10 @@
     />
 
     <audio controls v-if="previewFile.type=='voice'">
-      <source :src="localAddress + url">
+      <source :src="serverAddress + url">
     </audio>
     
-    <el-link :href="localAddress + url" v-if="previewFile.type=='pdf'" target="_blank">{{previewFile.name}}</el-link>
+    <el-link :href="serverAddress + url" v-if="previewFile.type=='pdf'" target="_blank">{{previewFile.name}}</el-link>
     <el-input
       v-model="previewFile.content"
       type="textarea"
@@ -45,12 +45,13 @@
       :rows="8"
     />
     <div v-if="previewFile.content!=''">
-      <el-button>修正</el-button>
+      <el-button @click="updateOCR">修正</el-button>
       <el-button @click="insert">插入</el-button>
     </div>
     <div v-else>
       <p style="margin-bottom:10px;font-size:small;color:#909399">暂无结果</p>
-      <el-button>提取内容</el-button>
+      <el-input placeholder="💎输入想提取的内容关键词..." style="margin-bottom: 15px" v-model="keyWord" :disabled="!uStore.isVIP"></el-input>
+      <el-button @click="OCR">提取内容</el-button>
     </div>
   </el-card>
 </template>
@@ -61,7 +62,11 @@ import {useRoute} from 'vue-router';
 import {userUploadFile, allFile, deleteFile} from '@/api/file';
 import {ElMessage} from 'element-plus';
 import { useEditorStore } from '@/stores/heading'
+import {userGetOCR, VIPGetOCR} from '@/api/ai';
+import {updateFile} from '@/api/file';
+import { userStore } from '@/stores/user'
 
+const uStore = userStore()
 const editorStore = useEditorStore()
 const localAddress = "http://127.0.0.1:8000"
 const serverAddress = "http://152.136.110.235"
@@ -69,6 +74,8 @@ const route = useRoute()
 const doc_id = parseInt(route.params.docId)
 const previewVisible = ref(false)
 const previewFile = ref()
+const keyWord = ref('')
+const aiLoading = ref(false)
 const url =
   ref('https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg')
 const srcList = ref([
@@ -77,30 +84,6 @@ const srcList = ref([
 
 const textarea = ref('')
 const fileList = ref([
-  // {
-  //   name: 'food.jpeg',
-  //   url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
-  //   content: 'OCR识别成果1',
-  //   type: 'img'
-  // },
-  // {
-  //   name: 'food2.jpeg',
-  //   url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
-  //   content: 'OCR识别成果2',
-  //   type: 'img'
-  // },
-  // {
-  //   name: 'hello.mp3',
-  //   url: 'http://127.0.0.1:8000/api/media/file/1/%E8%BF%B7%E6%98%9F%E5%8F%AB.mp3',
-  //   content: '',
-  //   type: 'voice'
-  // },
-  // {
-  //   name: 'test.pdf',
-  //   url: 'http://127.0.0.1:8000/api/media/file/1/2024%E5%B0%8F%E5%AD%A6%E6%9C%9F%E9%9C%80%E6%B1%82%E7%AE%80%E8%BF%B0_final%E7%89%88%E6%9C%AC.pdf',
-  //   content: '',
-  //   type: 'pdf'
-  // },
 ])
 const fileLoading = ref(false)
 
@@ -129,11 +112,10 @@ const handleChange = (uploadFile, uploadFiles) => {
 const beforeUpload = (rawFile) => {
   var t = rawFile.name.split('.').at(-1)
   console.log(t)
-  if (!['jpeg', 'jpg', 'gif', 'png', 'svg', 'pdf', 'mp3', 'wav', 'flac'].includes(t)) {
+  if (!['jpeg', 'jpg', 'gif', 'png', 'svg', 'pdf'].includes(t)) {
     console.log(111)
     ElMessage.error('接受的图片格式：jpeg, jpg, gif, png, svg')
     ElMessage.error('接受的文档格式：pdf')
-    ElMessage.error('接受的音频格式：mp3, wav, flac')
     return false
   } else if (rawFile.size / 1024 / 1024 > 10) {
     ElMessage.error('Avatar picture size can not exceed 10MB!')
@@ -147,7 +129,7 @@ const handlePreview = (file) => {
   previewVisible.value = true
   previewFile.value = file
   url.value = file.url
-  srcList.value = [localAddress + file.url]
+  srcList.value = [serverAddress + file.url]
   textarea.value = file.content
 }
 
@@ -174,6 +156,47 @@ function upload(uploadFile){
       url: res.url,
       content: '',
       type: res.file_type,
+    })
+  })
+}
+
+function OCR(){
+  aiLoading.value = true
+  console.log(previewFile.value.file_id)
+  if(uStore.isVIP&&keyWord.value!=''){
+    VIPGetOCR(previewFile.value.file_id, keyWord.value).then((res)=>{
+      if(res.code == 1){
+        previewFile.value.content = res.res.llmResult
+        updateFile(previewFile.value.file_id, previewFile.value.content)
+      }else{
+        ElMessage({
+          message: "something goes wrong...",
+          type: 'error',
+        })
+      }
+      aiLoading.value = false
+    })
+  }else{
+    userGetOCR(previewFile.value.file_id).then((res)=>{
+      if(res.code == 1){
+        previewFile.value.content = res.res
+        updateFile(previewFile.value.file_id, previewFile.value.content)
+      }else{
+        ElMessage({
+          message: "something goes wrong...",
+          type: 'error',
+        })
+      }
+      aiLoading.value = false
+    })
+  }
+}
+
+function updateOCR(){
+  updateFile(previewFile.value.file_id, previewFile.value.content).then((res)=>{
+    ElMessage({
+      message: "已保存修正",
+      type: 'success',
     })
   })
 }

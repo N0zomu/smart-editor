@@ -46,6 +46,10 @@ export function uploadAvatar(image){
   return post("/user/changeIcon", data);
 }
 
+export function tobeVIP(){
+  return post("/user/upgrade", {});
+}
+
 export function searchUser(email, team_id){
   let data={};
   data.email=email;

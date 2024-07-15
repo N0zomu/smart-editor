@@ -2,7 +2,7 @@
 	<el-container class="home-container" v-if="true">
 		<el-header>
 			<el-row style="height:100%">
-				<el-col :span="3"><h1>LOGO</h1></el-col>
+				<el-col :span="3"><el-image :src="logo" style="margin-top:5px;height:5vh"/></el-col>
 				<el-col :span="19">
 					<div class="home-header-search">
 						<el-input
@@ -96,7 +96,7 @@
 										class="demo-rich-content__name"
 										style="margin: 0; font-weight: bold"
 									>
-										{{this.nickname}}
+										{{this.nickname}}{{this.uStore.isVIP?"💎":""}}
 									</p>
 									<p
 										class="demo-rich-content__mention"
@@ -187,6 +187,25 @@
         <el-input v-model="docForm.docName" placeholder="请输入文件名称" />
       </el-form-item>
     </el-form>
+		<div style="text-align:left">
+      <p>是否使用模板</p>
+      <el-radio-group v-model="useM" :disabled="!uStore.isVIP">
+        <el-radio value="1" size="large">建立空白文档</el-radio>
+        <el-radio value="2" size="large">💎使用模板</el-radio>
+      </el-radio-group>
+      <el-select v-if="useM=='2'"
+        v-model="modeName"
+        style="width: 200px; margin-left:45px" size="small">
+        <el-option
+          v-for="item in modeOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+    </div>
+    <el-image v-if="useM=='2'"
+        style="width: 450px; height: 600px" :src="modeOptions.at(parseInt(modeName)-1).img" fit="fill" />
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="docDialogVisible = false">取消</el-button>
@@ -236,8 +255,11 @@ import {all0Msg, all1Msg, handleMsg, deleteMsg} from '../api/message'
 import { ElMessage } from 'element-plus'
 import {selfInfo} from '../api/user.js'
 import {addMember, createTeam} from '../api/team'
-import {createRootDoc, createRootFolder, createFolderDoc, createFolderFolder, teamRootDoc, teamRootFolder, getFolderTeam} from '@/api/document';
+import {createRootDoc, createRootFolder, createFolderDoc, createFolderFolder, teamRootDoc, teamRootFolder, getFolderTeam, updateDoc} from '@/api/document';
 import router from '@/router/index.js'
+import {dachuang, resume, business_plan, competation} from '@/assets/js/template';
+
+
 const store = userStore()
 export default {
 	data() {
@@ -268,7 +290,37 @@ export default {
 			},
 			teamForm: {
 				teamName:""
-			}
+			},
+			useM: '1',
+			modeName: '1',
+			modeOptions: [
+				{
+					value: '1',
+					label: '大创项目书',
+					img: require('@/assets/images/dc.png'),
+					js : dachuang
+				},
+				{
+					value: '2',
+					label: '个人求职简历',
+					img: require('@/assets/images/resume.png'),
+					js : resume
+				},
+				{
+					value: '3',
+					label: '商业计划书',
+					img: require('@/assets/images/com.png'),
+					js : business_plan
+				},
+				{
+					value: '4',
+					label: '竞赛文书',
+					img: require('@/assets/images/compete.png'),
+					js : competation
+				},
+			],
+			uStore: userStore(),
+			logo: require('@/assets/images/transLogo.png'),
 		}
 	},
 	created() {
@@ -315,10 +367,15 @@ export default {
 		},
 		menuCreateDoc(){
 			var flag = this.$route.name
+			var d_id = 0
 			if(flag=='space'){
 				var team_id = this.$route.path.split('/').at(-1)
 				teamRootDoc(this.docForm.docName, team_id).then((res=>{
 					this.docDialogVisible = false
+					d_id = res.result.doc_id
+					if(this.useM=='2'){
+						updateDoc(d_id, this.modeOptions.at(parseInt(this.modeName)-1).js)
+					}
 					location.reload()
 				}))
 			}
@@ -328,13 +385,21 @@ export default {
 					createFolderDoc(this.docForm.docName, folder_id, 
 					res.in_team, res.team_id).then((res2=>{
 						this.docDialogVisible = false
+						d_id = res2.result.doc_id
+						if(this.useM=='2'){
+							updateDoc(d_id, this.modeOptions.at(parseInt(this.modeName)-1).js)
+						}
 						location.reload()
 					}))
 				}))
 			}
 			else{
-				createRootDoc(this.docForm.docName).then((res=>{
+				createRootDoc(this.docForm.docName).then((res3=>{
 					this.docDialogVisible = false
+					d_id = res3.result.doc_id
+					if(this.useM=='2'){
+						updateDoc(d_id, this.modeOptions.at(parseInt(this.modeName)-1).js)
+					}
 					this.$router.push('/home/desktop')
 					if(flag=='desktop'){
 						location.reload()

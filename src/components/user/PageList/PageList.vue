@@ -1,7 +1,7 @@
 <template>
     <div class="body_pageList">
         <el-card class="info_PL">
-            <el-avatar shape='circle' :size="70" style="font-size: 22px" :src="store.$state.icon">{{ store.$state.nickname.slice(-2) }}</el-avatar>
+            <el-avatar shape='circle' :size="70" style="font-size: 22px" :src="serverAddress + store.$state.icon">{{ store.$state.nickname.slice(-2) }}</el-avatar>
 <!--            <el-avatar shape='circle' :size="70" style="font-size: 22px">{{ store.$state.ava }}</el-avatar>-->
 <!--            <el-avatar shape='circle' :size="70" style="font-size: 22px; background-color: rgba(168,23,23,0.88)">-->
 <!--                {{ userName.slice(-2) }}-->
@@ -9,7 +9,7 @@
             <el-divider>
                 <el-icon><star-filled color="#C0C4CC"/></el-icon>
             </el-divider>
-            <p style="font-size: 18px; margin-bottom: 4px; font-weight: 400">{{ store.$state.nickname }}</p>
+            <p style="font-size: 18px; margin-bottom: 4px; font-weight: 400">{{ store.$state.nickname}}{{store.$state.isVIP?"💎":""}}</p>
             <p style="font-size: 12px; color: #a0a5a8">{{ store.$state.email }}</p>
         </el-card>
 <!--        <el-card class="calendar_PL">-->
@@ -29,6 +29,7 @@ export default {
     name: "PageList",
 
     setup() {
+        const serverAddress = "http://152.136.110.235"
         const store = userStore()
         let url_avatar = ref();
         let userName = ref("星空下的暴走奶昔");
@@ -82,7 +83,8 @@ export default {
             userName,
             userEmail,
             value,
-            store
+            store,
+            serverAddress
         }
     }
 }

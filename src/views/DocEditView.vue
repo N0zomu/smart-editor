@@ -9,6 +9,23 @@
           </el-button-group>
           <el-text tag="b" style="font-size:x-large">{{docName}}</el-text>
           <el-text tag="i" style="margin-left:25px">{{updateTime}}前</el-text>
+          <el-tooltip
+            effect="dark"
+            content="已连接在线服务器"
+            placement="bottom"
+            v-if="webAcc"
+          >
+            <el-icon  color="#67C23A"><CircleCheck /></el-icon>
+          </el-tooltip>
+          <el-tooltip
+            effect="dark"
+            content="连接在线服务器失败"
+            placement="bottom"
+            v-else
+          >
+            <el-icon color="#F56C6C"><Warning /></el-icon>
+          </el-tooltip>
+          
         </el-space>
       </el-col>
       <el-col :span="12" style="text-align:right;">
@@ -18,7 +35,8 @@
           content="与团队协作"
           placement="bottom"
           >
-            <el-button type="primary" icon="User" style="margin-right:10px;margin-top:10px" v-if="team_id!=0" @click="teamVisible=true">{{teamName}}</el-button>
+            <el-button :disabled="!webAcc"
+              type="primary" icon="User" style="margin-right:10px;margin-top:10px" v-if="team_id!=0" @click="teamVisible=true">{{teamName}}</el-button>
           </el-tooltip>
           <el-popover
             placement="bottom"
@@ -40,7 +58,7 @@
                   class="demo-rich-content__name"
                   style="margin: 0; font-weight: bold"
                 >
-                  {{nickname}}
+                  {{nickname}}{{uStore.isVIP?"💎":""}}
                 </p>
                 <p
                   class="demo-rich-content__mention"
@@ -50,7 +68,7 @@
                 </p>
               </div>
               <el-divider class="press-divider"/>
-              <el-link :underline="false">个人主页</el-link>
+              <el-link :underline="false" :href="`/user`">个人主页</el-link>
               <el-divider class="press-divider"/>
               <el-link :underline="false" type="danger" @click="logout">退出登录</el-link>
             </div>
@@ -74,9 +92,12 @@
     
     <div class="lefttools">
       <outline></outline>
+      <el-card class="func_card" @click="download">
+        <p>导出文档</p>
+      </el-card>
     </div>
 
-    <div class="editor">
+    <div class="editor" >
       <div class="editorcard">
         <div class="toptools">
           <editor-menu :editor="editor"></editor-menu>
@@ -103,25 +124,40 @@
         <el-tab-pane name="first">
           <template #label>
             <span class="custom-tabs-label">
-              <el-icon><calendar /></el-icon>
-              <span>Route</span>
+              <el-icon><Tools /></el-icon>
+              <span>润色</span>
             </span>
           </template>
           <polish-card></polish-card>
         </el-tab-pane >
-        <el-tab-pane label="Config" name="second">
+        <el-tab-pane name="second">
+          <template #label>
+            <span class="custom-tabs-label">
+              <el-icon><Menu /></el-icon>
+              <span>格式</span>
+            </span>
+          </template>
           <format-card></format-card>
         </el-tab-pane>
-        <el-tab-pane label="Role" name="third">
+        <el-tab-pane name="third">
+          <template #label>
+            <span class="custom-tabs-label">
+              <el-icon><HelpFilled /></el-icon>
+              <span>可视化</span>
+            </span>
+          </template>
           <visible-card></visible-card>
         </el-tab-pane>
-        <el-tab-pane label="Task" name="fourth">
+        <el-tab-pane name="fourth">
+          <template #label>
+            <span class="custom-tabs-label">
+              <el-icon><PictureFilled /></el-icon>
+              <span>提取</span>
+            </span>
+          </template>
           <upload-card></upload-card>
         </el-tab-pane>
       </el-tabs>
-      <el-card class="func_card" @click="download">
-        <p>导出文档</p>
-      </el-card>
     </div>
   </div>
 
@@ -209,26 +245,62 @@ const router = useRouter()
 const doc = new Y.Doc()
 const hashcode = useRoute().params.docId;
 
+
+function checkInternetConnectivity(timeout = 5000) { // timeout参数，默认为5秒
+    return new Promise((resolve, reject) => {
+        const url = 'https://www.google.com/favicon.ico';
+        const img = new Image();
+
+        // 设定超时
+        const timer = setTimeout(() => {
+            img.src = ''; // 取消图像加载
+            reject(new Error('Timeout'));
+        }, timeout);
+
+        img.onload = () => {
+            clearTimeout(timer); // 如果加载成功，清除超时
+            resolve(true);
+        };
+
+        img.onerror = () => {
+            clearTimeout(timer); // 如果加载失败，清除超时
+            reject(new Error('Error loading image'));
+        };
+
+        img.src = `${url}?t=${new Date().getTime()}`; // 加一个时间戳参数防止缓存
+    });
+}
+
+
 // Connect to your Collaboration server
-const provider = new TiptapCollabProvider({
+const provider = ref()
+provider.value = new TiptapCollabProvider({
   name: hashcode, // Unique document identifier for syncing. This is your document name.
   appId: 'j9yp3691', // Your Cloud Dashboard AppID or `baseURL` for on-premises
   token:
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MjA4ODA0ODQsI' +
-      'm5iZiI6MTcyMDg4MDQ4NCwiZXhwIjoxNzIwOTY2ODg0LCJpc3MiOiJodHRwczo' +
-      'vL2Nsb3VkLnRpcHRhcC5kZXYiLCJhdWQiOiJqOXlwMzY5MSJ9.GM7OcUX6R3QRM' +
-      'Ed2s3tC7B8e4A8r6ocH8MWOf0cxKmg', // Your JWT token
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MjA5Njg0MTIsIm5iZiI6MTcyMDk2ODQxMiwiZXhwIjoxNzIxMDU0ODEyLCJpc3MiOiJodHRwczovL2Nsb3VkLnRpcHRhcC5kZXYiLCJhdWQiOiJqOXlwMzY5MSJ9.zBzDnYeWhfu91waPM9KmVHmKQUZXwOLo2JMy3yzwbmg', // Your JWT token
   document: doc,
   // The onSynced callback ensures initial content is set only once using editor.setContent(), preventing repetitive content insertion on editor syncs.
   onSynced() {
+    console.log(doc)
+    docLoading.value = false
     if( !doc.getMap('config').get('initialContentLoaded') && editor ){
+      docLoading.value = true
       doc.getMap('config').set('initialContentLoaded', true);
-
-      editor.value.commands.setContent(`
-      <p>
-        欢迎使用智能编辑器 🎉
-      </p>
-      `)
+      docContent(route.params.docId).then((res)=>{
+        if(res.content!=''){
+          loadHeadings()
+          editor.value.commands.clearContent()
+          editor.value.commands.setContent(JSON.parse(res.content), false)
+          docLoading.value = false
+        }
+      })
+      // editor.value.commands.setContent(`
+      // <p>
+      //   欢迎使用智能编辑器!
+      // </p>
+      // `)
+      
     }
 
   }
@@ -272,7 +344,7 @@ const editor = useEditor({
       document:doc,
     }),
     CollaborationCursor.configure({
-      provider: provider,
+      provider: provider.value,
       user: {
         name: store.nickname,
         color: getColorBasedOnValue(store.user_id),
@@ -361,6 +433,8 @@ const activeName = ref('fourth')
 const teamVisible = ref(false)
 let teamMemberList = ref([])
 let teamMemberLoading = ref(true)
+const tiptapLoading = ref(true)
+const webAcc = ref(false)
 
 // 绑定ctrl+S
 window.addEventListener('keydown', handleSave);
@@ -375,6 +449,23 @@ function handleSave(event){
 }
 
 onMounted(() => {
+  checkInternetConnectivity(5000) // 设置超时时间为3秒
+    .then(() => {
+      console.log('Internet is reachable.')
+      webAcc.value = true
+    })
+    .catch(error => {
+      console.log(`Internet is not reachable. Reason: ${error.message}`)
+      webAcc.value = false
+      docContent(route.params.docId).then((res)=>{
+        if(res.content!=''){
+          editor.value.commands.clearContent()
+          editor.value.commands.setContent(JSON.parse(res.content), false)
+          loadHeadings()
+          docLoading.value = false
+        }
+      })
+    });
   doc_id.value = parseInt(route.params.docId)
   docContent(doc_id.value).then((res)=>{
     docName.value = res.doc_name
@@ -388,7 +479,7 @@ onMounted(() => {
     let now = moment()
     let duration = moment.duration(now.diff(m1))
     updateTime.value = duration.humanize()
-    docLoading.value = false
+    // docLoading.value = false
 
 
     teamMembers(team_id.value).then((res)=>{
@@ -853,7 +944,7 @@ b {
 }
 
 .func_card{
-  margin:20px 20px 20px 0px;
+  margin:20px 20px 20px 20px;
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;

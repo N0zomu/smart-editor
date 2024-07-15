@@ -18,3 +18,10 @@ export function deleteFile(file_id){
   data.file_id = file_id
   return post("/file/delete", data);
 }
+
+export function updateFile(file_id, content){
+  let data = {}
+  data.file_id = file_id
+  data.content = content
+  return post("/file/update", data);
+}

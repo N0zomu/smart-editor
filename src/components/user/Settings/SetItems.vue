@@ -33,13 +33,14 @@
         <p style="width: 85%; text-align: left; margin-top: 20px">账号信息</p>
         <el-card class="card_ST" shadow="never">
             <p class="card_p_ST">
-                <div class="card_content_ST">{{ userMethod }}</div>
+                <div class="card_content_ST" v-if="!store.$state.isVIP">普通账户</div>
+                <div class="card_content_ST" v-else>VIP账户</div>
                 <div class="card_space_ST"></div>
 <!--                <v-for >privileges</v-for>-->
                 <el-tooltip
                         class="box-item"
                         effect="dark"
-                        content="暂未开通付费功能"
+                        content="VIP账号点击就送！"
                         placement="top-start"
                 >
                     <el-button
@@ -48,9 +49,9 @@
                             :type="button.type"
                             text
                             @click="upgrade()"
-                            disabled
+                            :disabled="store.$state.isVIP"
                     >
-                        升级
+                        💎升级
                     </el-button>
                 </el-tooltip>
 
@@ -66,7 +67,7 @@
                         :on-change="updateAVA"
                         :limit="1"
                         accept=".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.WMF,.webp,.avif,.apng">
-                    <el-avatar :size="65" style="font-size: 20px" :src="store.$state.icon">{{ store.$state.nickname.slice(-2) }}</el-avatar>
+                    <el-avatar :size="65" style="font-size: 20px" :src="serverAddress + store.$state.icon">{{ store.$state.nickname.slice(-2) }}</el-avatar>
                 </el-upload>
             </p>
             <div class="card_n_ST"></div>
@@ -142,13 +143,14 @@
 <script>
 import {onMounted, ref} from "vue";
 import {userStore} from "@/stores/user";
-import {selfAva, selfInfo, updateNickName, updatePassword, uploadAvatar} from "@/api/user";
+import {selfAva, selfInfo, updateNickName, updatePassword, uploadAvatar, tobeVIP} from "@/api/user";
 import {ElMessage} from "element-plus";
 
 export default {
     name: "SetItems",
 
     setup() {
+        const serverAddress = "http://152.136.110.235"
         const store = userStore();
         let userName = ref("星空下的暴走奶昔");
         let userEmail = ref("I'mGoingTo@Drink.Milkshake");
@@ -217,7 +219,8 @@ export default {
         }
 
         const upgrade = () => {
-            // TODO: upgrade
+            store.$state.isVIP = true
+            tobeVIP()
         }
 
         const getUserInfo = () => {
@@ -245,7 +248,6 @@ export default {
                 }
                 else {
                     store.$state.icon = result2.icon_url;
-                    console.log("##" + store.$state.icon)
                 }
             }))
         }
@@ -286,6 +288,7 @@ export default {
             newPWD,
             cPWD,
             store,
+            serverAddress,
             updateNick,
             cancelNick,
             updatePWD,

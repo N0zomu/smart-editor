@@ -15,7 +15,7 @@ const handleHeadingClick = (data) => {
 </script>
 
 <template>
-  <el-scrollbar height="90vh">
+  <el-scrollbar height="80vh" style="height:85%">
     <div class="outline__list" style="display: flex; flex-direction: column;">
       <el-text  class="text-gray-400" style="margin-top:20px;font-size:20px" tag="b">大纲</el-text>
       <el-divider style="margin: 2px; width:99%"></el-divider>

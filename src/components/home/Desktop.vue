@@ -89,12 +89,32 @@
     </el-main>
   </el-container>
 
-  <el-dialog v-model="docDialogVisible" title="新建文档" width="500" align-center @close="docForm.docName=''">
+  <el-dialog v-model="docDialogVisible" title="新建文档" width="500"
+  align-center @close="docForm.docName=''">
     <el-form :model="docForm">
       <el-form-item>
         <el-input v-model="docForm.docName" placeholder="请输入文件名称" />
       </el-form-item>
     </el-form>
+    <div style="text-align:left">
+      <p>是否使用模板</p>
+      <el-radio-group v-model="useM" :disabled="!uStore.isVIP">
+        <el-radio value="1" size="large">建立空白文档</el-radio>
+        <el-radio value="2" size="large">💎使用模板</el-radio>
+      </el-radio-group>
+      <el-select v-if="useM=='2'"
+        v-model="modeName"
+        style="width: 200px; margin-left:45px" size="small">
+        <el-option
+          v-for="item in modeOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+    </div>
+    <el-image v-if="useM=='2'"
+        style="width: 450px; height: 600px" :src="modeOptions.at(parseInt(modeName)-1).img" fit="fill" />
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="docDialogVisible = false">取消</el-button>
@@ -136,12 +156,43 @@
 
 <script setup>
 import {ref, reactive, onMounted, toRaw} from 'vue'
-import {rootDoc, deleteDoc, collectDoc, cancelCollect, allCollect, createRootDoc, createRootFolder, moveDoc} from "../../api/document.js"
+import {rootDoc, deleteDoc, collectDoc, cancelCollect, allCollect, createRootDoc, createRootFolder, moveDoc, updateDoc} from "../../api/document.js"
 import moment from 'moment'
 import { ElMessage, ElNotification } from 'element-plus';
 import DocTree from '../DocTree';
+import {dachuang, resume, business_plan, competation} from '@/assets/js/template';
+import { userStore } from '@/stores/user'
 
+const uStore = userStore()
 let moveDialogVisible = ref(false)
+const useM = ref('1')
+const modeName = ref('1')
+const modeOptions = [
+  {
+    value: '1',
+    label: '大创项目书',
+    img: require('@/assets/images/dc.png'),
+    js : dachuang
+  },
+  {
+    value: '2',
+    label: '个人求职简历',
+    img: require('@/assets/images/resume.png'),
+    js : resume
+  },
+  {
+    value: '3',
+    label: '商业计划书',
+    img: require('@/assets/images/com.png'),
+    js : business_plan
+  },
+  {
+    value: '4',
+    label: '竞赛文书',
+    img: require('@/assets/images/compete.png'),
+    js : competation
+  },
+]
 
 let dst_doc = ref(0)
 function receiveMessageFromChild(message){
@@ -193,6 +244,11 @@ function userCreateDoc(){
         type: 'success',
       })
       docLoading.value = true
+      if(useM.value=='2'){
+        console.log(res.result.doc_id)
+        // console.log(modeOptions.at(parseInt(modeName.value)-1).js)
+        updateDoc(res.result.doc_id, modeOptions.at(parseInt(modeName.value)-1).js)
+      }
       getRootDoc()
     }else{
       ElMessage.error(res.message)

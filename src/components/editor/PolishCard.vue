@@ -5,11 +5,12 @@
     <el-card style="margin:10px 10px 10px 0">
       <el-space direction="vertical" >
         <el-space>
-          <el-text>特定场景</el-text>
+          <el-text>💎特定场景</el-text>
           <el-select
             v-model="env"
             placeholder="Select"
-            style="width: 210px"
+            style="width: 200px"
+            :disabled="!uStore.isVIP"
           >
             <el-option
               v-for="item in EnvOptions"
@@ -21,11 +22,12 @@
         </el-space>
 
         <el-space>
-          <el-text>具体说明</el-text>
+          <el-text>💎具体说明</el-text>
           <el-input 
             v-model="input"
-            style="width: 210px"
+            style="width: 200px"
             placeholder="如：文档主题，应用场景等。"
+            :disabled="!uStore.isVIP"
             ></el-input>
         </el-space>
 

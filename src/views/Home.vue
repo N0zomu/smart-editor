@@ -77,7 +77,7 @@
 						>
 						<template #reference>
 							<div>
-								<el-avatar :src="'http://152.136.110.235'+iconURL" :fit="fit"> user </el-avatar>
+								<el-avatar :src="'http://152.136.110.235'+iconURL" fit="fill"> user </el-avatar>
 							</div>
 						</template>
 						<template #default>

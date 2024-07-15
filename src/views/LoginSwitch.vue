@@ -122,6 +122,11 @@ export default {
       }
     }
   },
+  created(){
+    if(store.isLogin){
+      this.$router.push("/home")
+    }
+  },
   methods: {
     login() {
       this.$refs.loginForm.validate((valid) =>{

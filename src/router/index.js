@@ -90,4 +90,27 @@ const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
 })
+
+router.beforeEach((to, from, next) => {
+	// 判断有没有登录
+	if (!sessionStorage.getItem('user')) {
+		if (to.name == "login"||to.name == "temp") {
+			next();
+		} else {
+			router.push('login')
+		}
+	} else {
+    const store = sessionStorage.getItem('user')
+    console.log(JSON.parse(store).isLogin)
+    if(JSON.parse(store).isLogin){
+      next();
+    }else{
+      if (to.name == "login"||to.name == "temp") {
+        next();
+      } else {
+        router.push('login')
+      }
+    }
+	}
+});
 export default router

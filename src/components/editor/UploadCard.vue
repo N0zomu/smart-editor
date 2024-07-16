@@ -88,9 +88,7 @@ const fileList = ref([
 const fileLoading = ref(false)
 
 const handleRemove = (uploadFile, uploadFiles) => {
-  console.log(uploadFile, uploadFiles)
   deleteFile(uploadFile.file_id).then((res)=>{
-    console.log(uploadFile.file_id)
     ElMessage({
       message: "删除文件成功！",
       type: 'success',
@@ -99,21 +97,17 @@ const handleRemove = (uploadFile, uploadFiles) => {
 }
 
 const handleChange = (uploadFile, uploadFiles) => {
-  console.log(uploadFile)
   fileList.value.push({
     name: uploadFile.name,
     url: uploadFile.url,
     content: '',
     type: 'image',
   })
-  console.log(fileList.value)
 }
 
 const beforeUpload = (rawFile) => {
   var t = rawFile.name.split('.').at(-1)
-  console.log(t)
   if (!['jpeg', 'jpg', 'gif', 'png', 'svg', 'pdf'].includes(t)) {
-    console.log(111)
     ElMessage.error('接受的图片格式：jpeg, jpg, gif, png, svg')
     ElMessage.error('接受的文档格式：pdf')
     return false
@@ -125,7 +119,6 @@ const beforeUpload = (rawFile) => {
 }
 
 const handlePreview = (file) => {
-  console.log(file)
   previewVisible.value = true
   previewFile.value = file
   url.value = file.url
@@ -142,12 +135,10 @@ onMounted(()=>{
 
 function insert(){
   var pos = editorStore.editorInstance.view.state.selection.$anchor.pos
-  console.log(previewFile.value.content)
   editorStore.editorInstance.commands.insertContentAt(pos, `<p>${previewFile.value.content}</p>`)
 }
 
 function upload(uploadFile){
-  console.log(uploadFile.file)
   userUploadFile(doc_id, uploadFile.file).then((res)=>{
     fileList.value.pop()
     fileList.value.push({
@@ -162,7 +153,6 @@ function upload(uploadFile){
 
 function OCR(){
   aiLoading.value = true
-  console.log(previewFile.value.file_id)
   if(uStore.isVIP&&keyWord.value!=''){
     VIPGetOCR(previewFile.value.file_id, keyWord.value).then((res)=>{
       if(res.code == 1){

@@ -12,7 +12,6 @@ export const useEditorStore = defineStore('editor', () => {
     activeHeading.value = data
   }
   const setEditorInstance = (data) => {
-    console.log(editorInstance.value)
 
     editorInstance.value = data
   }

@@ -48,10 +48,8 @@ export default defineComponent ({
         const minSize = ref('30%');
         const maxSize = ref('70%');
         const sizeChange = (size) => {
-            console.log(size);
         };
         const collapsedChange = (event) => {
-            console.log(event);
         };
         const jumpBack_userHome = () => {
             router.push('home')

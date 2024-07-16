@@ -101,7 +101,6 @@ router.beforeEach((to, from, next) => {
 		}
 	} else {
     const store = sessionStorage.getItem('user')
-    console.log(JSON.parse(store).isLogin)
     if(JSON.parse(store).isLogin){
       next();
     }else{

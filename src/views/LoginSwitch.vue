@@ -131,10 +131,8 @@ export default {
     login() {
       this.$refs.loginForm.validate((valid) =>{
         if(valid) {
-          console.log(1)
           var promise = Login(this.loginForm.email, this.loginForm.password)
           promise.then((result =>{
-            console.log(2)
             if(result.code==0){
               ElMessage({
                 message: result.error,
@@ -158,7 +156,6 @@ export default {
         if(valid){
           var promise = Register(this.registerForm.name, this.registerForm.password, this.registerForm.email)
           promise.then((result =>{
-            console.log(result)
             if(result.code==0){
               ElMessage({
                 message: result.error,

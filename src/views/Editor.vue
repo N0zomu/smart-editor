@@ -76,8 +76,6 @@ export default {
   watch: {
     $route(to, from) {
       this.activePath = to.path
-      // console.log(to.path)
-      // console.log(from.path)
     }
   },
   methods: {

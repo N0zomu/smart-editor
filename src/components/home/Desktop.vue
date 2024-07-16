@@ -245,8 +245,6 @@ function userCreateDoc(){
       })
       docLoading.value = true
       if(useM.value=='2'){
-        console.log(res.result.doc_id)
-        // console.log(modeOptions.at(parseInt(modeName.value)-1).js)
         updateDoc(res.result.doc_id, modeOptions.at(parseInt(modeName.value)-1).js)
       }
       getRootDoc()

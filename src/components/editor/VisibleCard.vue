@@ -33,7 +33,6 @@ const hasMindMap = ref(false)
 const mindmapVisible = ref(false)
 
 onMounted(()=>{
-  console.log(parseInt(route.params.docId))
   
 })
 

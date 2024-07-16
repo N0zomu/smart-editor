@@ -75,7 +75,6 @@ export default {
 
         onMounted(() => {
             getUserInfo();
-            console.log("ava:" + store.$state.ava)
         })
 
         return {

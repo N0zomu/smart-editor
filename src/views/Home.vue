@@ -330,10 +330,8 @@ export default {
 			this.activePath = '/home/group'
 		}
 		if(store.isLogin==false&&store.token!=""){
-			console.log(JSON.parse(window.sessionStorage.getItem('user')).token)
 			var promise = selfInfo()
 			promise.then((res => {
-				console.log(res)
 				store.login(res.id, res.nickname, res.email, res.icon, res.is_VIP, 
 				JSON.parse(window.sessionStorage.getItem('user')).token)
 				this.nickname = store.nickname
@@ -353,8 +351,6 @@ export default {
 	watch: {
     $route(to, from) {
       this.activePath = to.path
-      // console.log(to.path)
-      // console.log(from.path)
 			if(to.name=="space"){
 				this.activePath = this.groupPath
 			}

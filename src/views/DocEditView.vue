@@ -282,7 +282,6 @@ provider.value = new TiptapCollabProvider({
   document: doc,
   // The onSynced callback ensures initial content is set only once using editor.setContent(), preventing repetitive content insertion on editor syncs.
   onSynced() {
-    console.log(doc)
     docLoading.value = false
     if( !doc.getMap('config').get('initialContentLoaded') && editor ){
       docLoading.value = true
@@ -484,7 +483,6 @@ onMounted(() => {
 
     teamMembers(team_id.value).then((res)=>{
       teamMemberList.value = res.res
-      console.log(teamMemberList.value)
       teamMemberLoading.value = false
     })
   })
@@ -545,7 +543,6 @@ function saveContent(){
 
 function inviteMember(member){
   sendDocMsg(member.user_id, team_id.value, doc_id.value).then((res)=>{
-    console.log(member.user_id)
     ElMessage({
       message: "已发送协作邀请！",
       type: 'success',
@@ -587,7 +584,6 @@ const polish=()=>{
     url,
     data: formData,
   }).then(res => {
-    console.log(res.data);
     var tpcard1={"title":"ai辅助评审","cont":hisstring,"review":res.data}
     ailist.value.push(tpcard1)
     navigator.clipboard.writeText(res.data)
@@ -610,9 +606,7 @@ const continuation=()=>{
     method,
     url,
     data: formData,
-  }).then(res => {
-    console.log(res.data);
-   
+  }).then(res => {   
     showMessage()
     ailoading.value=false
   });

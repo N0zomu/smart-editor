@@ -179,13 +179,11 @@ export default {
                     store.$state.nickname = userName.value;
                 }
             }))
-            console.log(userName);
             showInput.value = false;
         }
 
         const cancelNick = () => {
             showInput.value = false;
-            console.log(showInput);
         }
 
         const updatePWD = () => {

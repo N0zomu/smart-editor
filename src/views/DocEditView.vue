@@ -208,6 +208,7 @@ import ts from 'highlight.js/lib/languages/typescript'
 import html from 'highlight.js/lib/languages/xml'
 import { common, createLowlight } from 'lowlight'
 import { userStore } from '../stores/user.js'
+import {ElNotification} from 'element-plus';
 const lowlight = createLowlight()
 lowlight.register({ html, ts, css, js })
 
@@ -455,6 +456,10 @@ onMounted(() => {
     })
     .catch(error => {
       console.log(`Internet is not reachable. Reason: ${error.message}`)
+      ElNotification({
+        title: '注意',
+        message: '您的编辑器未连接到服务器。若想体验协同编辑，请确保与外网连接畅通。',
+      })
       webAcc.value = false
       docContent(route.params.docId).then((res)=>{
         if(res.content!=''){
@@ -478,7 +483,7 @@ onMounted(() => {
     let now = moment()
     let duration = moment.duration(now.diff(m1))
     updateTime.value = duration.humanize()
-    // docLoading.value = false
+    //docLoading.value = false
 
 
     teamMembers(team_id.value).then((res)=>{
